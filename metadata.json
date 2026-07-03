@@ -1,0 +1,6 @@
+{
+  "name": "WillowWallet v2",
+  "description": "Sebuah aplikasi personal finance modern bertema mobile banking dengan analitik, budgeting, transaksi realtime, dan visualisasi premium.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
