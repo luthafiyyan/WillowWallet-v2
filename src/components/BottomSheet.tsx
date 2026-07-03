@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, MessageSquare, Plus, Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Transaction, TransactionType } from '../types';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface BottomSheetProps {
   }) => void;
   categories: string[];
   editingTransaction?: Transaction | null;
+  lang?: 'ID' | 'EN';
 }
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
@@ -23,7 +25,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onSubmit,
   categories,
   editingTransaction,
+  lang = 'ID',
 }) => {
+  const t = APP_TRANSLATIONS[lang].components.bottomSheet;
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState<string>('');
   const [category, setCategory] = useState<string>('');
@@ -118,7 +122,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             {/* Header title */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-border-custom dark:border-slate-700 flex-shrink-0">
               <h3 className="text-lg font-bold text-text-primary dark:text-slate-100">
-                {editingTransaction ? 'Ubah Transaksi' : 'Tambah Transaksi'}
+                {editingTransaction ? t.editTitle : t.addTitle}
               </h3>
               <button
                 onClick={onClose}
@@ -142,7 +146,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                   }`}
                 >
-                  Pengeluaran
+                  {t.expense}
                 </button>
                 <button
                   type="button"
@@ -153,14 +157,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                   }`}
                 >
-                  Pemasukan
+                  {t.income}
                 </button>
               </div>
 
               {/* Amount Input */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  Nominal Transaksi
+                  {t.amount}
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-text-secondary">
@@ -184,7 +188,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               {/* Category Dropdown */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  Kategori
+                  {t.category}
                 </label>
                 <select
                   value={category}
@@ -199,7 +203,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat}
+                      {lang === 'EN' && cat === 'Makanan' ? 'Food & Drink' :
+                       lang === 'EN' && cat === 'Transportasi' ? 'Transportation' :
+                       lang === 'EN' && cat === 'Belanja' ? 'Shopping' :
+                       lang === 'EN' && cat === 'Hiburan' ? 'Entertainment' :
+                       lang === 'EN' && cat === 'Tagihan' ? 'Bills & Utilities' :
+                       lang === 'EN' && cat === 'Lainnya' ? 'Others' :
+                       lang === 'EN' && cat === 'Gaji' ? 'Salary' :
+                       lang === 'EN' && cat === 'Investasi' ? 'Investment' :
+                       lang === 'EN' && cat === 'Sampingan' ? 'Side Hustle' : cat}
                     </option>
                   ))}
                 </select>
@@ -208,7 +220,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               {/* Date Selector */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  Tanggal
+                  {t.date}
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
@@ -225,12 +237,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               {/* Description Input */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  Deskripsi (Opsional)
+                  {t.description}
                 </label>
                 <div className="relative">
                   <MessageSquare className="absolute left-4 top-4.5 w-5 h-5 text-text-secondary" />
                   <textarea
-                    placeholder="Beli kopi, bayar listrik, gajian, dll..."
+                    placeholder={t.descPlaceholder}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full bg-brand-bg dark:bg-slate-900/40 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-transparent focus:border-primary focus:bg-surface dark:focus:bg-slate-800 focus:outline-none transition-all text-text-primary dark:text-slate-100 min-h-[80px]"
@@ -245,7 +257,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 className="w-full bg-primary hover:bg-secondary text-white py-4 rounded-2xl text-base font-semibold shadow-medium hover:shadow-lg hover:-translate-y-0.5 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2"
               >
                 <Check className="w-5 h-5" />
-                {editingTransaction ? 'Simpan Perubahan' : 'Tambah Transaksi'}
+                {editingTransaction ? (lang === 'ID' ? 'Simpan Perubahan' : 'Save Changes') : t.saveBtn}
               </button>
 
             </form>

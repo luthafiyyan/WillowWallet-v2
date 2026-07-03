@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface ConfirmationDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  lang?: 'ID' | 'EN';
 }
 
 export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
@@ -18,9 +20,14 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'Hapus',
-  cancelText = 'Batal',
+  confirmText,
+  cancelText,
+  lang = 'ID',
 }) => {
+  const t = APP_TRANSLATIONS[lang].components.dialog;
+  const resolvedCancel = cancelText || t.cancelBtn;
+  const resolvedConfirm = confirmText || t.confirmBtn;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -61,7 +68,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   onClick={onClose}
                   className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all active:scale-98"
                 >
-                  {cancelText}
+                  {resolvedCancel}
                 </button>
                 <button
                   onClick={() => {
@@ -71,7 +78,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-rose-500 hover:bg-rose-600 text-white shadow-soft hover:shadow-md transition-all active:scale-98 flex items-center justify-center gap-1.5"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {confirmText}
+                  {resolvedConfirm}
                 </button>
               </div>
             </motion.div>

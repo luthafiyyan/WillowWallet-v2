@@ -6,7 +6,6 @@ import {
   Sun, 
   FileJson, 
   LogOut, 
-  Database, 
   Code,
   ShieldAlert,
   ChevronRight,
@@ -16,12 +15,16 @@ import {
 } from 'lucide-react';
 import { AppUser, Transaction, Budget } from '../types';
 import { auth, isSandboxMode, clearFirebaseConfig } from '../firebase/config';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface ProfileProps {
   user: AppUser;
   transactions: Transaction[];
   budgets: Budget[];
   onLogout: () => void;
+  darkMode?: boolean;
+  onToggleDarkMode?: () => void;
+  lang?: 'ID' | 'EN';
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -29,25 +32,36 @@ export const Profile: React.FC<ProfileProps> = ({
   transactions,
   budgets,
   onLogout,
+  darkMode: propDarkMode,
+  onToggleDarkMode,
+  lang = 'ID',
 }) => {
-  const [darkMode, setDarkMode] = useState(() => {
+  const t = APP_TRANSLATIONS[lang].profile;
+  const [localDarkMode, setLocalDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark') || 
       localStorage.getItem('WILLOW_THEME') === 'dark';
   });
 
-  // Keep dark mode synced
+  const darkMode = propDarkMode !== undefined ? propDarkMode : localDarkMode;
+
+  // Keep dark mode synced if local fallback is used
   useEffect(() => {
-    if (darkMode) {
+    if (propDarkMode !== undefined) return;
+    if (localDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('WILLOW_THEME', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('WILLOW_THEME', 'light');
     }
-  }, [darkMode]);
+  }, [localDarkMode, propDarkMode]);
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    if (onToggleDarkMode) {
+      onToggleDarkMode();
+    } else {
+      setLocalDarkMode(!localDarkMode);
+    }
   };
 
   // Full Database backup (JSON)
@@ -90,10 +104,10 @@ export const Profile: React.FC<ProfileProps> = ({
       {/* Title */}
       <div>
         <h2 className="text-xl font-bold text-text-primary dark:text-slate-100">
-          Profil Saya
+          {t.title}
         </h2>
         <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">
-          Kelola pengaturan personal, tampilan visual, ekspor arsip, dan sesi akun Anda.
+          {t.subtitle}
         </p>
       </div>
 
@@ -115,87 +129,12 @@ export const Profile: React.FC<ProfileProps> = ({
             </div>
 
             <h3 className="text-base font-bold text-text-primary dark:text-slate-100">
-              {user.displayName || 'Pengguna Willow'}
+              {user.displayName || t.appUser}
             </h3>
             
             <div className="flex items-center gap-1 text-xs text-text-secondary dark:text-slate-400 mt-1">
               <Mail className="w-3.5 h-3.5" />
               <span className="break-all">{user.email || 'offline-sandbox@willow.com'}</span>
-            </div>
-
-            {/* Dynamic Account Tag */}
-            <div className="mt-4">
-              {isSandboxMode ? (
-                <span className="bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-amber-500/10 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  Simulasi Sandbox
-                </span>
-              ) : (
-                <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-emerald-500/10 flex items-center gap-1">
-                  <Database className="w-3 h-3" />
-                  Firebase Terhubung
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Integration Status Panel */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest pl-1">
-              Koneksi Firebase
-            </h4>
-
-            <div className="bg-surface dark:bg-slate-800 p-4 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft">
-              {isSandboxMode ? (
-                <div className="space-y-3">
-                  <div className="flex gap-3 items-start">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center flex-shrink-0">
-                      <ShieldAlert className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-text-primary dark:text-slate-100">
-                        Koneksi Offline Aktif
-                      </h5>
-                      <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5 leading-relaxed">
-                        Data Anda tersimpan dengan aman di browser lokal Anda. Keluar akun akan membersihkan sesi, tetapi data Sandbox akan bertahan di localStorage.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      // Direct refresh to login configuration screen
-                      auth.signOut().then(() => {
-                        window.location.reload();
-                      });
-                    }}
-                    className="w-full bg-brand-bg dark:bg-slate-700 hover:bg-border-custom dark:hover:bg-slate-600 text-text-primary dark:text-slate-200 py-2.5 rounded-xl text-xs font-semibold transition-all text-center block cursor-pointer"
-                  >
-                    Konfigurasi Kredensial Firebase
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex gap-3 items-start">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                      <Database className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-text-primary dark:text-slate-100">
-                        Database Firebase Live Terhubung
-                      </h5>
-                      <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5 leading-relaxed">
-                        Sistem saat ini menyinkronkan seluruh CRUD transaksi ke node <code className="bg-brand-bg dark:bg-slate-900 px-1 py-0.5 rounded text-primary text-xs">users/{user.uid}</code> di database Firebase Anda secara realtime.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleDisconnectFirebase}
-                    className="w-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 py-2.5 rounded-xl text-xs font-semibold transition-all text-center block cursor-pointer"
-                  >
-                    Putuskan Koneksi Firebase
-                  </button>
-                </div>
-              )}
             </div>
           </div>
 
@@ -207,7 +146,7 @@ export const Profile: React.FC<ProfileProps> = ({
           {/* Visual Settings Menu Group */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest pl-1">
-              Pengaturan Aplikasi
+              {t.appSettings}
             </h4>
 
             <div className="bg-surface dark:bg-slate-800 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft overflow-hidden divide-y divide-border-custom dark:divide-slate-700/50">
@@ -220,10 +159,10 @@ export const Profile: React.FC<ProfileProps> = ({
                   </div>
                   <div>
                     <span className="text-xs font-bold text-text-primary dark:text-slate-100">
-                      Mode Gelap Premium
+                      {t.darkModeTitle}
                     </span>
                     <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5">
-                      Ganti ke skema warna malam yang nyaman di mata.
+                      {t.darkModeDesc}
                     </p>
                   </div>
                 </div>
@@ -231,6 +170,7 @@ export const Profile: React.FC<ProfileProps> = ({
                 {/* iOS style toggle */}
                 <button
                   onClick={toggleDarkMode}
+                  id="profile-darkmode-toggle"
                   className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-300 focus:outline-none cursor-pointer ${
                     darkMode ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
                   }`}
@@ -255,10 +195,10 @@ export const Profile: React.FC<ProfileProps> = ({
                   </div>
                   <div>
                     <span className="text-xs font-bold text-text-primary dark:text-slate-100">
-                      Unduh Backup Lengkap (JSON)
+                      {t.backupTitle}
                     </span>
                     <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5">
-                      Unduh seluruh database transaksi & anggaran ke file offline.
+                      {t.backupDesc}
                     </p>
                   </div>
                 </div>
@@ -274,8 +214,21 @@ export const Profile: React.FC<ProfileProps> = ({
             className="w-full bg-rose-500 hover:bg-rose-600 text-white py-4 rounded-2xl text-xs font-bold shadow-soft hover:shadow-medium hover:-translate-y-0.5 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut className="w-4.5 h-4.5 stroke-[2.2]" />
-            Keluar Sesi Akun
+            {t.logoutBtn}
           </button>
+
+          {/* Profile Page Footer credit */}
+          <div className="pt-6 text-center text-xs text-text-secondary dark:text-slate-500 font-semibold">
+            © 2026 WillowWallet. Developed by{' '}
+            <a 
+              href="https://www.instagram.com/luthafiyyan_/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-primary hover:underline font-bold transition-all"
+            >
+              Luthafiyyan
+            </a>
+          </div>
 
         </div>
 

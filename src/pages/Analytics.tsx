@@ -13,7 +13,8 @@ import {
   Scale,
   Percent,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  SlidersHorizontal
 } from 'lucide-react';
 import { Transaction, Budget } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
@@ -30,6 +31,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface AnalyticsProps {
   transactions: Transaction[];
@@ -37,6 +39,7 @@ interface AnalyticsProps {
   categories: string[];
   onSaveBudget: (category: string, limit: number) => void;
   onDeleteBudget: (id: string) => void;
+  lang?: 'ID' | 'EN';
 }
 
 export const Analytics: React.FC<AnalyticsProps> = ({
@@ -45,13 +48,31 @@ export const Analytics: React.FC<AnalyticsProps> = ({
   categories,
   onSaveBudget,
   onDeleteBudget,
+  lang = 'ID',
 }) => {
+  const t = APP_TRANSLATIONS[lang].analytics;
   const [activeSubTab, setActiveSubTab] = useState<'trends' | 'budgets'>('trends');
   
   // State for setting budgets
   const [budgetCategory, setBudgetCategory] = useState(categories[0] || 'Lainnya');
   const [budgetLimit, setBudgetLimit] = useState('');
   const [showAddBudget, setShowAddBudget] = useState(false);
+
+  const getLocalizedCategoryName = (catName: string) => {
+    if (lang === 'ID') return catName;
+    const catMap: Record<string, string> = {
+      'Makanan': 'Food & Drink',
+      'Transportasi': 'Transportation',
+      'Belanja': 'Shopping',
+      'Hiburan': 'Entertainment',
+      'Tagihan': 'Bills & Utilities',
+      'Lainnya': 'Others',
+      'Gaji': 'Salary',
+      'Investasi': 'Investment',
+      'Sampingan': 'Side Hustle'
+    };
+    return catMap[catName] || catName;
+  };
 
   // Filter categories for expenses vs income for budget form
   const expenseCategoriesOnly = useMemo(() => {
@@ -142,9 +163,91 @@ export const Analytics: React.FC<AnalyticsProps> = ({
     });
   }, [budgets, stats.categorySpendMap]);
 
+  // Dynamic financial health and ratio calculation
+  const financialHealth = useMemo(() => {
+    const rate = stats.savingRate;
+    let label = 'Cukup Sehat';
+    let enLabel = 'Good / Healthy';
+    let score = 75;
+    let colorClass = 'text-blue-500 dark:text-blue-400';
+    let bgClass = 'bg-blue-500/10 dark:bg-blue-500/20';
+    let advice = 'Keuangan Anda dalam kondisi sehat. Anda berhasil menyisihkan sebagian dana.';
+    let enAdvice = 'Your finances are healthy. You successfully set aside some funds.';
+
+    if (rate >= 45) {
+      label = 'Sangat Sehat';
+      enLabel = 'Excellent';
+      score = 95;
+      colorClass = 'text-emerald-500 dark:text-emerald-400';
+      bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20';
+      advice = 'Laju menabung Anda sangat prima. Pertahankan gaya hidup hemat ini!';
+      enAdvice = 'Your saving rate is stellar. Maintain this high savings habit!';
+    } else if (rate >= 20 && rate < 45) {
+      label = 'Sehat';
+      enLabel = 'Healthy';
+      score = 80;
+      colorClass = 'text-primary dark:text-secondary';
+      bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20';
+      advice = 'Keuangan Anda dalam kondisi sehat. Terus tingkatkan porsi tabungan Anda.';
+      enAdvice = 'Your finances are in a healthy state. Keep increasing your savings share.';
+    } else if (rate > 0 && rate < 20) {
+      label = 'Perlu Perhatian';
+      enLabel = 'Caution';
+      score = 55;
+      colorClass = 'text-amber-500 dark:text-amber-400';
+      bgClass = 'bg-amber-500/10 dark:bg-amber-500/20';
+      advice = 'Tabungan Anda tipis bulan ini. Coba batasi pengeluaran non-prioritas.';
+      enAdvice = 'Your savings are thin this month. Try limiting non-essential expenses.';
+    } else if (rate <= 0) {
+      label = 'Defisit Pengeluaran';
+      enLabel = 'Critical / Deficit';
+      score = 30;
+      colorClass = 'text-rose-500 dark:text-rose-400';
+      bgClass = 'bg-rose-500/10 dark:bg-rose-500/20';
+      advice = 'Pengeluaran Anda melampaui pendapatan bulan ini. Segera evaluasi anggaran!';
+      enAdvice = 'Your spending exceeded your income this month. Immediately evaluate your budget!';
+    }
+
+    return { label, enLabel, score, colorClass, bgClass, advice, enAdvice };
+  }, [stats.savingRate]);
+
+  const ratioAllocation = useMemo(() => {
+    let needsSpent = 0;
+    let wantsSpent = 0;
+    transactions.forEach(tx => {
+      if (tx.type === 'expense' && tx.date.startsWith(currentMonthPrefix)) {
+        const cat = tx.category.toLowerCase();
+        if (
+          cat.includes('makan') || cat.includes('food') || 
+          cat.includes('trans') || cat.includes('mobil') || cat.includes('motor') ||
+          cat.includes('tagihan') || cat.includes('listrik') || cat.includes('pulsa') || cat.includes('air') || cat.includes('internet') ||
+          cat.includes('sehat') || cat.includes('obat') || cat.includes('dokter') ||
+          cat.includes('didik') || cat.includes('sekolah')
+        ) {
+          needsSpent += tx.amount;
+        } else {
+          wantsSpent += tx.amount;
+        }
+      }
+    });
+
+    const totalExpense = needsSpent + wantsSpent || 1;
+    const needsPercent = Math.round((needsSpent / totalExpense) * 100);
+    const wantsPercent = Math.round((wantsSpent / totalExpense) * 100);
+
+    return {
+      needsSpent,
+      wantsSpent,
+      needsPercent,
+      wantsPercent
+    };
+  }, [transactions, currentMonthPrefix]);
+
   // Chart Data: Monthly Cashflow (Last 6 Months)
   const monthlyChartData = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const months = lang === 'ID' 
+      ? ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+      : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const map: Record<string, { income: number; expense: number; monthName: string }> = {};
 
     // Get last 6 months boundaries
@@ -176,62 +279,94 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
     return last6MonthsKeys.map(k => ({
       name: map[k].monthName,
-      Pemasukan: map[k].income,
-      Pengeluaran: map[k].expense,
+      [lang === 'ID' ? 'Pemasukan' : 'Income']: map[k].income,
+      [lang === 'ID' ? 'Pengeluaran' : 'Expense']: map[k].expense,
       Cashflow: map[k].income - map[k].expense
     }));
-  }, [transactions]);
+  }, [transactions, lang]);
 
   // Chart Data: Category Breakdown Pie Chart
   const categoryChartData = useMemo(() => {
     const COLORS = ['#1B8A5A', '#3AA772', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#3B82F6', '#14B8A6'];
     const list = Object.keys(stats.categorySpendMap).map((cat, i) => ({
-      name: cat,
+      name: getLocalizedCategoryName(cat),
       value: stats.categorySpendMap[cat],
       color: COLORS[i % COLORS.length]
     }));
     list.sort((a, b) => b.value - a.value);
     return list;
-  }, [stats.categorySpendMap]);
+  }, [stats.categorySpendMap, lang]);
 
   // --- DYNAMIC AI INSIGHTS ENGINE ---
   const automatedInsights = useMemo(() => {
     const list: string[] = [];
 
-    // Rule 1: Saving Rate Assessment
-    if (stats.savingRate >= 40) {
-      list.push(`Laju Menabung Anda sangat prima (${stats.savingRate}%). Anda mengamankan sebagian besar pendapatan bulan ini.`);
-    } else if (stats.savingRate > 15) {
-      list.push(`Tingkat tabungan Anda aman di angka ${stats.savingRate}%. Pertahankan kestabilan pengeluaran Anda.`);
-    } else if (stats.monthIncome > 0 && stats.savingRate <= 10) {
-      list.push(`Saving rate Anda di bawah target ideal (${stats.savingRate}%). Coba batasi pengeluaran non-prioritas.`);
-    }
+    if (lang === 'EN') {
+      // Rule 1: Saving Rate Assessment
+      if (stats.savingRate >= 40) {
+        list.push(`Your saving rate is excellent (${stats.savingRate}%). You are securing a major part of this month's income.`);
+      } else if (stats.savingRate > 15) {
+        list.push(`Your savings rate is secure at ${stats.savingRate}%. Keep your spending steady.`);
+      } else if (stats.monthIncome > 0 && stats.savingRate <= 10) {
+        list.push(`Your saving rate is below target (${stats.savingRate}%). Try curbing non-essential spending.`);
+      }
 
-    // Rule 2: Budget Warnings
-    const overBudgets = activeBudgets.filter(b => b.spent > b.limit);
-    const nearOverBudgets = activeBudgets.filter(b => b.spent >= b.limit * 0.8 && b.spent <= b.limit);
+      // Rule 2: Budget Warnings
+      const overBudgets = activeBudgets.filter(b => b.spent > b.limit);
+      const nearOverBudgets = activeBudgets.filter(b => b.spent >= b.limit * 0.8 && b.spent <= b.limit);
 
-    if (overBudgets.length > 0) {
-      const names = overBudgets.map(b => b.category).join(', ');
-      list.push(`Anggaran jebol! Kategori [${names}] telah melampaui limit batas yang Anda tentukan.`);
-    }
-    if (nearOverBudgets.length > 0) {
-      const names = nearOverBudgets.map(b => b.category).join(', ');
-      list.push(`Waspada: Pengeluaran [${names}] hampir melampaui 80% dari limit anggaran Anda.`);
-    }
+      if (overBudgets.length > 0) {
+        const names = overBudgets.map(b => getLocalizedCategoryName(b.category)).join(', ');
+        list.push(`Budget blown! Kategori [${names}] has exceeded your designated limit.`);
+      }
+      if (nearOverBudgets.length > 0) {
+        const names = nearOverBudgets.map(b => getLocalizedCategoryName(b.category)).join(', ');
+        list.push(`Warning: Expenses for [${names}] are nearing 80% of your budget limit.`);
+      }
 
-    // Rule 3: Largest category spending
-    if (stats.largestAmount > 0) {
-      list.push(`Kategori pengeluaran terbesar Anda bulan ini adalah [${stats.largestCategory}] sebesar ${formatRupiah(stats.largestAmount)}.`);
-    }
+      // Rule 3: Largest category spending
+      if (stats.largestAmount > 0) {
+        list.push(`Your largest spending category this month is [${getLocalizedCategoryName(stats.largestCategory)}] totaling ${formatRupiah(stats.largestAmount)}.`);
+      }
 
-    // Default if no data
-    if (list.length === 0) {
-      list.push("Mulailah mencatat transaksi untuk memunculkan analisis keuangan pintar.");
+      if (list.length === 0) {
+        list.push("Start recording transactions to see smart financial insights.");
+      }
+    } else {
+      // Rule 1: Saving Rate Assessment
+      if (stats.savingRate >= 40) {
+        list.push(`Laju Menabung Anda sangat prima (${stats.savingRate}%). Anda mengamankan sebagian besar pendapatan bulan ini.`);
+      } else if (stats.savingRate > 15) {
+        list.push(`Tingkat tabungan Anda aman di angka ${stats.savingRate}%. Pertahankan kestabilan pengeluaran Anda.`);
+      } else if (stats.monthIncome > 0 && stats.savingRate <= 10) {
+        list.push(`Saving rate Anda di bawah target ideal (${stats.savingRate}%). Coba batasi pengeluaran non-prioritas.`);
+      }
+
+      // Rule 2: Budget Warnings
+      const overBudgets = activeBudgets.filter(b => b.spent > b.limit);
+      const nearOverBudgets = activeBudgets.filter(b => b.spent >= b.limit * 0.8 && b.spent <= b.limit);
+
+      if (overBudgets.length > 0) {
+        const names = overBudgets.map(b => b.category).join(', ');
+        list.push(`Anggaran jebol! Kategori [${names}] telah melampaui limit batas yang Anda tentukan.`);
+      }
+      if (nearOverBudgets.length > 0) {
+        const names = nearOverBudgets.map(b => b.category).join(', ');
+        list.push(`Waspada: Pengeluaran [${names}] hampir melampaui 80% dari limit anggaran Anda.`);
+      }
+
+      // Rule 3: Largest category spending
+      if (stats.largestAmount > 0) {
+        list.push(`Kategori pengeluaran terbesar Anda bulan ini adalah [${stats.largestCategory}] sebesar ${formatRupiah(stats.largestAmount)}.`);
+      }
+
+      if (list.length === 0) {
+        list.push("Mulailah mencatat transaksi untuk memunculkan analisis keuangan pintar.");
+      }
     }
 
     return list;
-  }, [stats, activeBudgets]);
+  }, [stats, activeBudgets, lang]);
 
   return (
     <div className="space-y-6 pb-28 animate-fade-in">
@@ -247,7 +382,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
           }`}
         >
           <BarChart3 className="w-4 h-4 stroke-[2.2]" />
-          Analisis Tren
+          {t.trendsTab}
         </button>
         <button
           onClick={() => setActiveSubTab('budgets')}
@@ -257,8 +392,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
           }`}
         >
-          <Scale className="w-4 h-4 stroke-[2.2]" />
-          Kelola Anggaran
+          <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
+          {t.budgetsTab}
         </button>
       </div>
 
@@ -267,38 +402,154 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         <div className="space-y-6">
           
           {/* Quick Metrics Cards */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             {/* Saving Rate Card */}
-            <div className="bg-surface dark:bg-slate-800 p-4 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
-                  Saving Rate (Bulan Ini)
+            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
+              <div className="space-y-1.5 flex-1">
+                <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">
+                  {t.savingRate}
                 </span>
-                <h4 className="text-xl font-bold text-primary mt-1">
+                <h4 className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                   {stats.savingRate}%
                 </h4>
+                <div className="w-24 h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-300" 
+                    style={{ width: `${stats.savingRate}%` }} 
+                  />
+                </div>
               </div>
-              <div className="w-full h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden mt-3">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-300" 
-                  style={{ width: `${stats.savingRate}%` }} 
-                />
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 ml-3">
+                <TrendingUp className="w-5.5 h-5.5 stroke-[2.2]" />
+              </div>
+            </div>
+
+            {/* This Month Expense Card */}
+            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">
+                  {lang === 'ID' ? 'PENGELUARAN BULAN INI' : 'MONTH EXPENSES'}
+                </span>
+                <h4 className="text-lg font-bold text-rose-500 dark:text-rose-400 line-clamp-1">
+                  {formatRupiah(stats.monthExpense)}
+                </h4>
+                <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold uppercase">
+                  {lang === 'ID' ? 'Total bulan ini' : 'Total this month'}
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0 ml-3">
+                <TrendingDown className="w-5.5 h-5.5 stroke-[2.2]" />
               </div>
             </div>
 
             {/* Average Daily Spending */}
-            <div className="bg-surface dark:bg-slate-800 p-4 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
-                  Rata-rata Harian
+            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 tracking-wider uppercase">
+                  {t.avgDaily}
                 </span>
-                <h4 className="text-lg font-bold text-text-primary dark:text-slate-100 mt-1 line-clamp-1">
+                <h4 className="text-lg font-bold text-amber-600 dark:text-amber-400 line-clamp-1">
                   {formatRupiah(stats.averageDailySpending)}
                 </h4>
+                <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold uppercase">
+                  {t.avgDailySubtitle}
+                </p>
               </div>
-              <p className="text-[9px] text-text-secondary font-semibold uppercase mt-3">
-                Bulan berjalan
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center flex-shrink-0 ml-3">
+                <Calendar className="w-5.5 h-5.5 stroke-[2.2]" />
+              </div>
+            </div>
+
+          </div>
+
+          {/* Dynamic Scorecard and Ratio Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Financial Health Scorecard Card */}
+            <div className="bg-surface dark:bg-slate-800 p-5 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col justify-between space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className={`w-5 h-5 ${financialHealth.colorClass}`} />
+                  <h4 className="text-xs font-bold text-text-primary dark:text-slate-100 uppercase tracking-wider">
+                    {lang === 'ID' ? 'Kesehatan Finansial' : 'Financial Health'}
+                  </h4>
+                </div>
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${financialHealth.bgClass} ${financialHealth.colorClass}`}>
+                  Score: {financialHealth.score}/100
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <div className="text-base font-bold text-text-primary dark:text-slate-100 flex items-baseline gap-1.5">
+                  <span>{lang === 'ID' ? financialHealth.label : financialHealth.enLabel}</span>
+                </div>
+                <p className="text-[11px] text-text-secondary dark:text-slate-400 leading-relaxed font-medium">
+                  {lang === 'ID' ? financialHealth.advice : financialHealth.enAdvice}
+                </p>
+              </div>
+
+              <div className="w-full h-2 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    financialHealth.score >= 80 
+                      ? 'bg-emerald-500' 
+                      : financialHealth.score >= 50 
+                        ? 'bg-amber-500' 
+                        : 'bg-rose-500'
+                  }`}
+                  style={{ width: `${financialHealth.score}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Needs vs Wants allocation (50/30/20 Rule) */}
+            <div className="bg-surface dark:bg-slate-800 p-5 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col justify-between space-y-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-5 h-5 text-primary" />
+                <h4 className="text-xs font-bold text-text-primary dark:text-slate-100 uppercase tracking-wider">
+                  {lang === 'ID' ? 'Rasio Alokasi Pengeluaran' : 'Expense Allocation Ratio'}
+                </h4>
+              </div>
+
+              <div className="space-y-2">
+                {/* Needs row */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] font-bold">
+                    <span className="text-text-primary dark:text-slate-200">
+                      {lang === 'ID' ? 'Kebutuhan (Needs - Ideal Max 50%)' : 'Needs (Ideal Max 50%)'}
+                    </span>
+                    <span className="text-blue-500">{ratioAllocation.needsPercent}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500" 
+                      style={{ width: `${ratioAllocation.needsPercent}%` }} 
+                    />
+                  </div>
+                </div>
+
+                {/* Wants row */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] font-bold">
+                    <span className="text-text-primary dark:text-slate-200">
+                      {lang === 'ID' ? 'Keinginan (Wants - Ideal Max 30%)' : 'Wants (Ideal Max 30%)'}
+                    </span>
+                    <span className="text-amber-500">{ratioAllocation.wantsPercent}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500" 
+                      style={{ width: `${ratioAllocation.wantsPercent}%` }} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-text-secondary dark:text-slate-400 italic font-medium">
+                {lang === 'ID' 
+                  ? '* Analisis berbasis aturan 50-30-20 untuk membantu pengelolaan keuangan mandiri.'
+                  : '* Analysis based on 50-30-20 rule to help autonomous financial management.'}
               </p>
             </div>
 
@@ -314,16 +565,16 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               <div className="bg-surface dark:bg-slate-800 p-5 rounded-[28px] border border-border-custom dark:border-slate-700/60 shadow-soft space-y-4">
                 <div>
                   <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
-                    Arus Kas Bulanan
+                    {t.cashflowTitle}
                   </h4>
                   <p className="text-[10px] text-text-secondary">
-                    Perbandingan pemasukan dan pengeluaran 6 bulan terakhir.
+                    {t.cashflowSubtitle}
                   </p>
                 </div>
 
                 {transactions.length === 0 ? (
                   <div className="h-48 flex items-center justify-center text-xs text-text-secondary">
-                    Belum ada data untuk dirender
+                    {t.noData}
                   </div>
                 ) : (
                   <div className="h-56 w-full text-xs">
@@ -335,8 +586,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                           formatter={(value: any) => [formatRupiah(Number(value)), '']}
                           contentStyle={{ background: '#1E293B', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '11px' }}
                         />
-                        <Bar dataKey="Pemasukan" fill="#1B8A5A" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="Pengeluaran" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey={lang === 'ID' ? 'Pemasukan' : 'Income'} fill="#1B8A5A" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey={lang === 'ID' ? 'Pengeluaran' : 'Expense'} fill="#EF4444" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -347,16 +598,16 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               <div className="bg-surface dark:bg-slate-800 p-5 rounded-[28px] border border-border-custom dark:border-slate-700/60 shadow-soft space-y-4">
                 <div>
                   <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
-                    Proporsi Kategori Pengeluaran
+                    {t.proportionTitle}
                   </h4>
                   <p className="text-[10px] text-text-secondary">
-                    Alokasi pembagian pengeluaran utama Anda bulan ini.
+                    {t.proportionSubtitle}
                   </p>
                 </div>
 
                 {categoryChartData.length === 0 ? (
                   <div className="h-44 flex items-center justify-center text-xs text-text-secondary">
-                    Belum ada pengeluaran dicatat
+                    {t.noExpense}
                   </div>
                 ) : (
                   <div className="grid grid-cols-5 gap-4 items-center">
@@ -393,7 +644,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                           <div key={item.name} className="space-y-1">
                             <div className="flex justify-between items-center text-[10px]">
                               <span className="font-bold text-text-primary dark:text-slate-200 line-clamp-1">
-                                {item.name}
+                                {getLocalizedCategoryName(item.name)}
                               </span>
                               <span className="font-semibold text-text-secondary dark:text-slate-400">
                                 {percent}%
@@ -424,7 +675,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 <div className="flex items-center gap-1.5">
                   <Sparkles className="w-5 h-5 text-primary" />
                   <h4 className="text-sm font-bold text-primary dark:text-secondary">
-                    Insight Keuangan Pintar
+                    {t.smartInsights}
                   </h4>
                 </div>
 
@@ -454,10 +705,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
-                  Anggaran Kategori Pengeluaran
+                  {t.categoryBudgets}
                 </h4>
                 <p className="text-[10px] text-text-secondary">
-                  Tentukan limit pengeluaran bulanan Anda untuk menghindari pemborosan.
+                  {t.categoryBudgetsSubtitle}
                 </p>
               </div>
               
@@ -466,7 +717,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 className="lg:hidden px-4 py-2 bg-primary hover:bg-secondary text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                {showAddBudget ? 'Tutup' : 'Atur Limit'}
+                {showAddBudget ? t.closeBtn : t.setLimitBtn}
               </button>
             </div>
 
@@ -475,10 +726,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               <div className="bg-surface dark:bg-slate-800 p-10 rounded-[28px] border border-dashed border-border-custom dark:border-slate-700 text-center flex flex-col items-center gap-2">
                 <Scale className="w-10 h-10 text-text-secondary/60 mb-1" />
                 <p className="text-xs text-text-secondary dark:text-slate-400 font-medium">
-                  Belum ada anggaran yang ditentukan.
+                  {t.noBudgetTitle}
                 </p>
                 <p className="text-[10px] text-text-secondary/50 max-w-xs">
-                  Mulai atur limit keuangan per kategori di form untuk membiasakan hidup hemat!
+                  {t.noBudgetDesc}
                 </p>
               </div>
             ) : (
@@ -500,7 +751,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                           </div>
                           <div>
                             <h5 className="text-xs font-bold text-text-primary dark:text-slate-100">
-                              {b.category}
+                              {getLocalizedCategoryName(b.category)}
                             </h5>
                             <p className="text-[9px] text-text-secondary">
                               Limit: {formatRupiah(b.limit)}
@@ -512,7 +763,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                         <button
                           onClick={() => onDeleteBudget(b.id)}
                           className="p-1.5 rounded-lg bg-brand-bg dark:bg-slate-700 hover:bg-rose-500/10 text-text-secondary hover:text-rose-500 transition-all cursor-pointer"
-                          title="Hapus Anggaran"
+                          title={lang === 'ID' ? 'Hapus Anggaran' : 'Delete Budget'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -535,17 +786,19 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                         
                         <div className="flex justify-between items-center text-[9px] font-bold">
                           <span className="text-text-secondary uppercase">
-                            {b.percentage}% Terpakai ({formatRupiah(b.spent)})
+                            {lang === 'ID' 
+                              ? `${b.percentage}% Terpakai (${formatRupiah(b.spent)})` 
+                              : `${b.percentage}% Used (${formatRupiah(b.spent)})`}
                           </span>
                           
                           {isOver ? (
                             <span className="text-rose-500 flex items-center gap-1 uppercase">
                               <AlertTriangle className="w-3 h-3" />
-                              Over Rp {formatRupiah(b.spent - b.limit)}!
+                              {lang === 'ID' ? 'Over' : 'Over'} Rp {formatRupiah(b.spent - b.limit)}!
                             </span>
                           ) : (
                             <span className="text-emerald-600 dark:text-emerald-400 uppercase">
-                              Sisa Rp {formatRupiah(b.remaining)}
+                              {lang === 'ID' ? 'Sisa' : 'Remaining'} Rp {formatRupiah(b.remaining)}
                             </span>
                           )}
                         </div>
@@ -562,13 +815,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({
           <div className={`lg:col-span-5 space-y-4 ${showAddBudget ? 'block' : 'hidden lg:block'}`}>
             <form onSubmit={handleSetBudgetSubmit} className="bg-surface dark:bg-slate-800 p-5 rounded-2xl border border-primary/20 shadow-soft space-y-4 animate-slide-up">
               <h5 className="text-xs font-bold text-text-primary dark:text-slate-100 uppercase tracking-wider">
-                Atur Limit Anggaran
+                {t.setBudgetFormTitle}
               </h5>
               
               <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-text-secondary uppercase">
-                    Pilih Kategori
+                    {t.selectCategory}
                   </label>
                   <select
                     value={budgetCategory}
@@ -582,19 +835,19 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     }}
                   >
                     {expenseCategoriesOnly.map(c => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>{getLocalizedCategoryName(c)}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-text-secondary uppercase">
-                    Limit Bulanan (Rp)
+                    {t.monthlyLimit}
                   </label>
                   <input
                     type="number"
                     required
-                    placeholder="Contoh: 1500000"
+                    placeholder={t.exampleLimit}
                     value={budgetLimit}
                     onChange={(e) => setBudgetLimit(e.target.value)}
                     className="w-full bg-brand-bg dark:bg-slate-900/40 px-3 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-transparent focus:border-primary text-text-primary dark:text-slate-100"
@@ -607,7 +860,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 disabled={!budgetLimit}
                 className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
               >
-                Simpan Limit Anggaran
+                {t.saveBudgetBtn}
               </button>
             </form>
           </div>

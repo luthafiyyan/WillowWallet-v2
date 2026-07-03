@@ -14,11 +14,14 @@ import {
 import { Transaction, TransactionType } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
 import { motion } from 'motion/react';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface TransactionsProps {
   transactions: Transaction[];
   onEditTransaction: (tx: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
+  onViewTransaction: (tx: Transaction) => void;
+  lang?: 'ID' | 'EN';
 }
 
 type TimeFilter = 'today' | 'week' | 'month' | 'year' | 'all';
@@ -28,10 +31,29 @@ export const Transactions: React.FC<TransactionsProps> = ({
   transactions,
   onEditTransaction,
   onDeleteTransaction,
+  onViewTransaction,
+  lang = 'ID',
 }) => {
+  const t = APP_TRANSLATIONS[lang].transactions;
   const [search, setSearch] = useState('');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+
+  const getLocalizedCategoryName = (catName: string) => {
+    if (lang === 'ID') return catName;
+    const catMap: Record<string, string> = {
+      'Makanan': 'Food & Drink',
+      'Transportasi': 'Transportation',
+      'Belanja': 'Shopping',
+      'Hiburan': 'Entertainment',
+      'Tagihan': 'Bills & Utilities',
+      'Lainnya': 'Others',
+      'Gaji': 'Salary',
+      'Investasi': 'Investment',
+      'Sampingan': 'Side Hustle'
+    };
+    return catMap[catName] || catName;
+  };
 
   // Filter calculations
   const filteredTransactions = useMemo(() => {
@@ -110,10 +132,10 @@ export const Transactions: React.FC<TransactionsProps> = ({
       {/* Title */}
       <div>
         <h2 className="text-xl font-bold text-text-primary dark:text-slate-100">
-          Riwayat Transaksi
+          {t.title}
         </h2>
         <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">
-          Cari, saring, dan kelola seluruh catatan transaksi Anda secara realtime.
+          {t.subtitle}
         </p>
       </div>
 
@@ -122,7 +144,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
         <input
           type="text"
-          placeholder="Cari deskripsi atau kategori..."
+          placeholder={t.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-surface dark:bg-slate-800 border border-border-custom dark:border-slate-700/60 rounded-2xl pl-12 pr-10 py-3.5 text-sm font-medium focus:border-primary focus:bg-surface focus:outline-none shadow-soft transition-all text-text-primary dark:text-slate-100 placeholder:text-slate-400"
@@ -146,58 +168,58 @@ export const Transactions: React.FC<TransactionsProps> = ({
           {/* Time-Range Filter Tabs */}
           <div className="space-y-2">
             <h5 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
-              Rentang Waktu
+              {t.timeRange}
             </h5>
-            <div className="flex flex-wrap lg:flex-col gap-1.5 bg-surface dark:bg-slate-800 p-2 rounded-2xl border border-border-custom dark:border-slate-700/60">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:flex lg:flex-col gap-1.5 bg-surface dark:bg-slate-800 p-1.5 sm:p-2 rounded-2xl border border-border-custom dark:border-slate-700/60">
               <button
                 onClick={() => setTimeFilter('all')}
-                className={`flex-grow text-center lg:text-left px-4 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'all'
                     ? 'bg-primary text-white shadow-soft'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
-                Semua Rentang
+                {t.allRanges}
               </button>
               <button
                 onClick={() => setTimeFilter('today')}
-                className={`flex-grow text-center lg:text-left px-4 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'today'
                     ? 'bg-primary text-white shadow-soft'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
-                Hari Ini
+                {t.today}
               </button>
               <button
                 onClick={() => setTimeFilter('week')}
-                className={`flex-grow text-center lg:text-left px-4 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'week'
                     ? 'bg-primary text-white shadow-soft'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
-                Minggu Ini
+                {t.thisWeek}
               </button>
               <button
                 onClick={() => setTimeFilter('month')}
-                className={`flex-grow text-center lg:text-left px-4 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'month'
                     ? 'bg-primary text-white shadow-soft'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
-                Bulan Ini
+                {t.thisMonth}
               </button>
               <button
                 onClick={() => setTimeFilter('year')}
-                className={`flex-grow text-center lg:text-left px-4 py-2.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'year'
                     ? 'bg-primary text-white shadow-soft'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
-                Tahun Ini
+                {t.thisYear}
               </button>
             </div>
           </div>
@@ -205,40 +227,40 @@ export const Transactions: React.FC<TransactionsProps> = ({
           {/* Transaction Type Filters */}
           <div className="space-y-2">
             <h5 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
-              Jenis Aliran
+              {t.flowType}
             </h5>
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2">
               <button
                 onClick={() => setTypeFilter('all')}
-                className={`w-full py-2.5 text-xs font-bold border rounded-xl transition-all cursor-pointer ${
+                className={`w-full py-2 text-[10px] sm:text-xs font-bold border rounded-xl transition-all cursor-pointer ${
                   typeFilter === 'all'
                     ? 'bg-slate-200 dark:bg-slate-700 text-text-primary dark:text-slate-100 border-transparent'
                     : 'bg-surface dark:bg-slate-800 border-border-custom dark:border-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
-                Semua Jenis
+                {t.allTypes}
               </button>
               <button
                 onClick={() => setTypeFilter('income')}
-                className={`w-full py-2.5 text-xs font-bold border rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`w-full py-2 text-[10px] sm:text-xs font-bold border rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                   typeFilter === 'income'
                     ? 'bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                     : 'bg-surface dark:bg-slate-800 border-border-custom dark:border-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
-                Pemasukan
+                {t.income}
               </button>
               <button
                 onClick={() => setTypeFilter('expense')}
-                className={`w-full py-2.5 text-xs font-bold border rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`w-full py-2 text-[10px] sm:text-xs font-bold border rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                   typeFilter === 'expense'
                     ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                     : 'bg-surface dark:bg-slate-800 border-border-custom dark:border-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
                 <TrendingDown className="w-3.5 h-3.5 stroke-[2.5]" />
-                Pengeluaran
+                {t.expense}
               </button>
             </div>
           </div>
@@ -247,7 +269,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           <div className="grid grid-cols-2 gap-3 bg-brand-bg dark:bg-slate-900/40 p-4 rounded-2xl border border-border-custom dark:border-slate-700/40">
             <div>
               <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
-                Filter Masuk
+                {t.filterIncome}
               </p>
               <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                 +{formatRupiah(filteredIncome)}
@@ -255,9 +277,9 @@ export const Transactions: React.FC<TransactionsProps> = ({
             </div>
             <div className="border-l border-border-custom dark:border-slate-700/50 pl-4">
               <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
-                Filter Keluar
+                {t.filterExpense}
               </p>
-              <p className="text-sm font-bold text-rose-500 mt-0.5">
+              <p className="text-sm font-bold text-rose-500 dark:text-rose-400 mt-0.5">
                 -{formatRupiah(filteredExpense)}
               </p>
             </div>
@@ -273,16 +295,16 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 <SlidersHorizontal className="w-6 h-6 text-text-secondary/60" />
               </div>
               <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
-                Transaksi tidak ditemukan
+                {t.noTxTitle}
               </h4>
               <p className="text-xs text-text-secondary dark:text-slate-400 max-w-xs leading-relaxed">
-                Coba ganti kata kunci pencarian atau bersihkan filter saringan Anda untuk melihat hasil.
+                {t.noTxDesc}
               </p>
               <button
                 onClick={clearFilters}
                 className="text-xs bg-primary text-white px-5 py-2.5 rounded-xl font-semibold shadow-soft hover:bg-secondary transition-all cursor-pointer mt-2"
               >
-                Reset Saringan
+                {t.resetFiltersBtn}
               </button>
             </div>
           ) : (
@@ -292,46 +314,53 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 return (
                   <div 
                     key={tx.id}
-                    className="bg-surface dark:bg-slate-800 p-4 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between group hover:shadow-md transition-all duration-200"
+                    onClick={() => onViewTransaction(tx)}
+                    className="bg-surface dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between gap-3 sm:gap-4 group hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-750/30 hover:-translate-y-[1px] transition-all duration-200 cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-11 h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0`}>
-                        <style.icon className="w-5.5 h-5.5 stroke-[2.2]" />
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0`}>
+                        <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
                       </div>
-                      <div>
-                        <h5 className="text-xs font-bold text-text-primary dark:text-slate-100 line-clamp-1">
-                          {tx.description || tx.category}
+                      <div className="min-w-0 flex-1">
+                        <h5 className="text-xs sm:text-sm font-bold text-text-primary dark:text-slate-100 line-clamp-1">
+                          {tx.description || getLocalizedCategoryName(tx.category)}
                         </h5>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
                           <span className="text-[10px] font-semibold text-text-secondary dark:text-slate-400">
-                            {tx.category}
+                            {getLocalizedCategoryName(tx.category)}
                           </span>
                           <span className="w-1 h-1 rounded-full bg-border-custom dark:bg-slate-700" />
-                          <span className="text-[10px] text-text-secondary dark:text-slate-500 font-medium">
+                          <span className="text-[10px] text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
                             {tx.date}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Right hand layout for Amount and controls */}
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-bold ${tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                    {/* Right hand layout for Amount and controls - stacked on mobile, row on desktop */}
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-3 flex-shrink-0">
+                      <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap ${tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
                         {tx.type === 'income' ? '+' : '-'} {formatRupiah(tx.amount)}
                       </span>
                       
                       <div className="flex gap-1">
                         <button 
-                          onClick={() => onEditTransaction(tx)}
-                          className="p-1.5 rounded-lg bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditTransaction(tx);
+                          }}
+                          className="p-1.5 sm:p-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
                           title="Edit"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button 
-                          onClick={() => onDeleteTransaction(tx.id)}
-                          className="p-1.5 rounded-lg bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
-                          title="Hapus"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteTransaction(tx.id);
+                          }}
+                          className="p-1.5 sm:p-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                          title={lang === 'ID' ? 'Hapus' : 'Delete'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

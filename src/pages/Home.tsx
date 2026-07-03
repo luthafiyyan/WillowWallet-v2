@@ -14,8 +14,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Transaction, Budget, AppUser } from '../types';
-import { formatRupiah, getIndonesianGreeting, getCategoryStyle } from '../utils/helpers';
+import { formatRupiah, getCategoryStyle } from '../utils/helpers';
 import { motion } from 'motion/react';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface HomeProps {
   user: AppUser;
@@ -25,6 +26,8 @@ interface HomeProps {
   onEditTransaction: (tx: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
   onNavigateTab: (tab: 'home' | 'transactions' | 'analytics' | 'profile') => void;
+  onViewTransaction: (tx: Transaction) => void;
+  lang?: 'ID' | 'EN';
 }
 
 export const Home: React.FC<HomeProps> = ({
@@ -35,8 +38,40 @@ export const Home: React.FC<HomeProps> = ({
   onEditTransaction,
   onDeleteTransaction,
   onNavigateTab,
+  onViewTransaction,
+  lang = 'ID',
 }) => {
-  const greeting = useMemo(() => getIndonesianGreeting(), []);
+  const t = APP_TRANSLATIONS[lang].home;
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (lang === 'EN') {
+      if (hour < 12) return 'Good Morning';
+      if (hour < 17) return 'Good Afternoon';
+      return 'Good Evening';
+    } else {
+      if (hour < 11) return 'Selamat Pagi';
+      if (hour < 15) return 'Selamat Siang';
+      if (hour < 18) return 'Selamat Sore';
+      return 'Selamat Malam';
+    }
+  }, [lang]);
+
+  const getLocalizedCategoryName = (catName: string) => {
+    if (lang === 'ID') return catName;
+    const catMap: Record<string, string> = {
+      'Makanan': 'Food & Drink',
+      'Transportasi': 'Transportation',
+      'Belanja': 'Shopping',
+      'Hiburan': 'Entertainment',
+      'Tagihan': 'Bills & Utilities',
+      'Lainnya': 'Others',
+      'Gaji': 'Salary',
+      'Investasi': 'Investment',
+      'Sampingan': 'Side Hustle'
+    };
+    return catMap[catName] || catName;
+  };
 
   // Compute metrics
   const { totalIncome, totalExpense, activeBalance } = useMemo(() => {
@@ -125,7 +160,7 @@ export const Home: React.FC<HomeProps> = ({
             {greeting}
           </p>
           <h1 className="text-2xl font-bold text-text-primary dark:text-slate-100 mt-1 flex items-center gap-1.5">
-            Halo, {user.displayName || 'Pengguna'} 👋
+            {lang === 'ID' ? 'Halo' : 'Hello'}, {user.displayName || (lang === 'ID' ? 'Pengguna' : 'User')} 👋
           </h1>
         </div>
         <button 
@@ -156,14 +191,14 @@ export const Home: React.FC<HomeProps> = ({
             </div>
             
             <div className="relative z-10">
-              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">Saldo Aktif</p>
+              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">{t.activeBalance}</p>
               <h2 className="text-3xl font-bold tracking-tight">{formatRupiah(activeBalance)}</h2>
               <div className="mt-5 flex gap-2.5">
                 <span className="px-2.5 py-1 bg-white/20 rounded-full text-[10px] font-medium">
-                  {activeBalance >= 0 ? 'Surplus Aktif' : 'Defisit Rekening'}
+                  {activeBalance >= 0 ? t.surplus : t.deficit}
                 </span>
                 <span className="px-2.5 py-1 bg-white/20 rounded-full text-[10px] font-medium underline cursor-pointer" onClick={() => onNavigateTab('analytics')}>
-                  Lihat Detail
+                  {t.viewDetail}
                 </span>
               </div>
             </div>
@@ -182,13 +217,13 @@ export const Home: React.FC<HomeProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
-                Transaksi Terbaru
+                {t.recentTransactions}
               </h4>
               <button 
                 onClick={() => onNavigateTab('transactions')} 
                 className="text-xs text-[#1B8A5A] font-bold hover:underline flex items-center gap-0.5"
               >
-                Lihat Semua
+                {t.viewAll}
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
@@ -199,10 +234,10 @@ export const Home: React.FC<HomeProps> = ({
                   <HelpCircle className="w-6 h-6" />
                 </div>
                 <p className="text-xs text-[#64748B] dark:text-slate-400 font-semibold">
-                  Belum ada catatan transaksi.
+                  {t.noTxTitle}
                 </p>
                 <p className="text-[10px] text-[#64748B]/60">
-                  Ketuk tombol (+) di bawah untuk mencatat transaksi pertama Anda.
+                  {t.noTxDesc}
                 </p>
               </div>
             ) : (
@@ -210,46 +245,57 @@ export const Home: React.FC<HomeProps> = ({
                 {recentTransactions.map((tx) => {
                   const style = getCategoryStyle(tx.category);
                   const isIncome = tx.type === 'income';
-                  const amtColorClass = isIncome ? 'text-[#16A34A]' : 'text-[#EF4444]';
-                  const bgCircleClass = isIncome ? 'bg-[#16A34A]/10 text-[#16A34A]' : 'bg-[#F59E0B]/10 text-[#F59E0B]';
 
                   return (
                     <div 
                       key={tx.id}
-                      className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm flex items-center justify-between group hover:shadow-md transition-all duration-200"
+                      onClick={() => onViewTransaction(tx)}
+                      className="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm flex items-center justify-between gap-3 sm:gap-4 group hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-750/30 hover:-translate-y-[1px] transition-all duration-200 cursor-pointer"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-2xl ${bgCircleClass} flex items-center justify-center flex-shrink-0`}>
-                          <style.icon className="w-6 h-6 stroke-[2]" />
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0`}>
+                          <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
                         </div>
-                        <div>
-                          <h5 className="text-sm font-bold text-[#1E293B] dark:text-slate-100 line-clamp-1">
-                            {tx.description || tx.category}
+                        <div className="min-w-0 flex-1">
+                          <h5 className="text-xs sm:text-sm font-bold text-[#1E293B] dark:text-slate-100 line-clamp-1">
+                            {tx.description || getLocalizedCategoryName(tx.category)}
                           </h5>
-                          <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
-                            {tx.category} • {tx.date}
-                          </p>
+                          <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
+                            <span className="text-[10px] font-semibold text-[#64748B] dark:text-slate-400">
+                              {getLocalizedCategoryName(tx.category)}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-[#E8EDF4] dark:bg-slate-700" />
+                            <span className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium whitespace-nowrap">
+                              {tx.date}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Amount and actions */}
-                      <div className="flex items-center gap-3">
-                        <span className={`text-sm font-bold ${amtColorClass}`}>
+                      {/* Right hand layout for Amount and controls - stacked on mobile, row on desktop */}
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-3 flex-shrink-0">
+                        <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap ${isIncome ? 'text-[#16A34A] dark:text-emerald-400' : 'text-[#EF4444] dark:text-rose-400'}`}>
                           {isIncome ? '+' : '-'} {formatRupiah(tx.amount)}
                         </span>
                         
-                        <div className="flex gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <button 
-                            onClick={() => onEditTransaction(tx)}
-                            className="p-1.5 rounded-lg bg-[#F5F7FB] dark:bg-slate-700 text-[#64748B] hover:text-[#1B8A5A] hover:bg-[#1B8A5A]/10 transition-all cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditTransaction(tx);
+                            }}
+                            className="p-1.5 sm:p-2 rounded-xl bg-[#F5F7FB] dark:bg-slate-700 text-[#64748B] hover:text-[#1B8A5A] hover:bg-[#1B8A5A]/10 transition-all cursor-pointer"
                             title="Edit"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button 
-                            onClick={() => onDeleteTransaction(tx.id)}
-                            className="p-1.5 rounded-lg bg-[#F5F7FB] dark:bg-slate-700 text-[#64748B] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-all cursor-pointer"
-                            title="Hapus"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteTransaction(tx.id);
+                            }}
+                            className="p-1.5 sm:p-2 rounded-xl bg-[#F5F7FB] dark:bg-slate-700 text-[#64748B] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-all cursor-pointer"
+                            title={lang === 'ID' ? 'Hapus' : 'Delete'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -268,7 +314,7 @@ export const Home: React.FC<HomeProps> = ({
           {/* Quick Action Bento Panel */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
-              Layanan Cepat
+              {t.quickService}
             </h4>
             <div className="grid grid-cols-4 gap-3">
               
@@ -281,7 +327,7 @@ export const Home: React.FC<HomeProps> = ({
                   <Plus className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
-                  Tambah
+                  {t.quickAdd}
                 </span>
               </button>
 
@@ -294,7 +340,7 @@ export const Home: React.FC<HomeProps> = ({
                   <ChevronRight className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
-                  Anggaran
+                  {t.quickBudget}
                 </span>
               </button>
 
@@ -307,7 +353,7 @@ export const Home: React.FC<HomeProps> = ({
                   <PieChart className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
-                  Insights
+                  {t.quickInsights}
                 </span>
               </button>
 
@@ -321,7 +367,7 @@ export const Home: React.FC<HomeProps> = ({
                   <FileDown className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
-                  Ekspor
+                  {t.quickExport}
                 </span>
               </button>
 
@@ -332,13 +378,13 @@ export const Home: React.FC<HomeProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
-                Budget Progress
+                {t.budgetProgress}
               </h4>
               <button 
                 onClick={() => onNavigateTab('analytics')} 
                 className="text-xs text-[#1B8A5A] font-bold hover:underline flex items-center gap-0.5"
               >
-                Kelola
+                {t.manage}
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
@@ -348,13 +394,13 @@ export const Home: React.FC<HomeProps> = ({
                 <div className="text-center py-4 flex flex-col items-center gap-2">
                   <AlertCircle className="w-8 h-8 text-[#64748B]/60" />
                   <p className="text-xs text-[#64748B] dark:text-slate-400">
-                    Belum ada anggaran kategori yang ditentukan.
+                    {t.noBudgetTitle}
                   </p>
                   <button 
                     onClick={() => onNavigateTab('analytics')}
                     className="text-xs bg-[#1B8A5A]/10 text-[#1B8A5A] px-4 py-2 rounded-xl font-bold hover:bg-[#1B8A5A]/20 transition-all mt-1"
                   >
-                    Set Anggaran Sekarang
+                    {t.setBudgetBtn}
                   </button>
                 </div>
               ) : (
@@ -370,7 +416,7 @@ export const Home: React.FC<HomeProps> = ({
                     return (
                       <div key={b.id} className="space-y-2">
                         <div className="flex justify-between items-center text-xs font-semibold text-[#1E293B] dark:text-slate-100">
-                          <span>{b.category}</span>
+                          <span>{getLocalizedCategoryName(b.category)}</span>
                           <span className="font-bold">{b.percentage}%</span>
                         </div>
                         <div className="w-full h-3 bg-[#F1F5F9] dark:bg-slate-700 rounded-full overflow-hidden">
@@ -392,10 +438,12 @@ export const Home: React.FC<HomeProps> = ({
               <div className="bg-[#F5F7FB] dark:bg-slate-900/40 p-4 rounded-2xl border border-dashed border-[#1B8A5A]/30 flex items-center gap-3">
                 <div className="text-2xl">⛰️</div>
                 <div className="flex-grow">
-                  <p className="text-[9px] text-[#64748B] dark:text-slate-400 font-bold uppercase tracking-tight">Tujuan Menabung</p>
-                  <p className="text-xs font-bold text-[#1E293B] dark:text-slate-200">Liburan ke Bali</p>
+                  <p className="text-[9px] text-[#64748B] dark:text-slate-400 font-bold uppercase tracking-tight">{t.savingGoalTitle}</p>
+                  <p className="text-xs font-bold text-[#1E293B] dark:text-slate-200">{lang === 'ID' ? 'Liburan ke Bali' : 'Trip to Bali'}</p>
                   <p className="text-[10px] text-[#1B8A5A] dark:text-emerald-400 font-semibold mt-0.5">
-                    {Math.min(100, Math.max(0, Math.round((activeBalance / 20000000) * 100)))}% tercapai (Target Rp 20jt)
+                    {lang === 'ID' 
+                      ? `${Math.min(100, Math.max(0, Math.round((activeBalance / 20000000) * 100)))}% tercapai (Target Rp 20jt)` 
+                      : `${Math.min(100, Math.max(0, Math.round((activeBalance / 20000000) * 100)))}% reached (Target Rp 20M)`}
                   </p>
                 </div>
               </div>

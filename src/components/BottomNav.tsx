@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, ArrowLeftRight, Plus, BarChart3, User } from 'lucide-react';
+import { APP_TRANSLATIONS } from '../utils/lang';
 
 export type TabId = 'home' | 'transactions' | 'analytics' | 'profile';
 
@@ -7,13 +8,17 @@ interface BottomNavProps {
   activeTab: TabId;
   onChangeTab: (tab: TabId) => void;
   onOpenAddTransaction: () => void;
+  lang?: 'ID' | 'EN';
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab,
   onChangeTab,
   onOpenAddTransaction,
+  lang = 'ID',
 }) => {
+  const t = APP_TRANSLATIONS[lang].nav;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface dark:bg-slate-800 border-t border-border-custom dark:border-slate-700 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] pb-safe">
       <div className="max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto h-20 px-6 flex items-center justify-between relative">
@@ -28,7 +33,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <Home className={`w-5 h-5 transition-transform duration-200 ${activeTab === 'home' ? 'scale-110 stroke-[2.5px]' : 'stroke-2'}`} />
-          <span className="text-[10px] font-medium tracking-wide">Home</span>
+          <span className="text-[10px] font-medium tracking-wide">{t.home}</span>
         </button>
 
         {/* Transactions Tab */}
@@ -41,7 +46,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <ArrowLeftRight className={`w-5 h-5 transition-transform duration-200 ${activeTab === 'transactions' ? 'scale-110 stroke-[2.5px]' : 'stroke-2'}`} />
-          <span className="text-[10px] font-medium tracking-wide">Transaksi</span>
+          <span className="text-[10px] font-medium tracking-wide">{t.transactions}</span>
         </button>
 
         {/* Floating Add Button (FAB) Spacer */}
@@ -65,7 +70,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <BarChart3 className={`w-5 h-5 transition-transform duration-200 ${activeTab === 'analytics' ? 'scale-110 stroke-[2.5px]' : 'stroke-2'}`} />
-          <span className="text-[10px] font-medium tracking-wide">Analisis</span>
+          <span className="text-[10px] font-medium tracking-wide">{t.analytics}</span>
         </button>
 
         {/* Profile Tab */}
@@ -78,7 +83,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <User className={`w-5 h-5 transition-transform duration-200 ${activeTab === 'profile' ? 'scale-110 stroke-[2.5px]' : 'stroke-2'}`} />
-          <span className="text-[10px] font-medium tracking-wide">Profil</span>
+          <span className="text-[10px] font-medium tracking-wide">{t.profile}</span>
         </button>
 
       </div>

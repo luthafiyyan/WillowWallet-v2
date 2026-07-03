@@ -15,17 +15,21 @@ import { ToastProvider, useToast } from './components/Toast';
 import { BottomNav, TabId } from './components/BottomNav';
 import { BottomSheet } from './components/BottomSheet';
 import { ConfirmationDialog } from './components/ConfirmationDialog';
+import { TransactionDetailModal } from './components/TransactionDetailModal';
+import { SplashScreen } from './components/SplashScreen';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { Transactions } from './pages/Transactions';
 import { Analytics } from './pages/Analytics';
 import { Profile } from './pages/Profile';
 import { Loader2, Sparkles, Database } from 'lucide-react';
+import { APP_TRANSLATIONS } from './utils/lang';
 
 function AppContent() {
   const { showToast } = useToast();
   const [user, setUser] = useState<AppUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   // Database states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -41,16 +45,34 @@ function AppContent() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<'transaction' | 'budget' | null>(null);
+  const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
 
-  // Set dark/light theme at startup from storage
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('WILLOW_THEME') === 'dark';
+  });
+
+  const [lang, setLang] = useState<'ID' | 'EN'>(() => {
+    return (localStorage.getItem('WILLOW_LANG') as 'ID' | 'EN') || 'ID';
+  });
+
+  // Keep language synced
   useEffect(() => {
-    const stored = localStorage.getItem('WILLOW_THEME');
-    if (stored === 'dark') {
+    localStorage.setItem('WILLOW_LANG', lang);
+  }, [lang]);
+
+  const t = APP_TRANSLATIONS[lang];
+  const gt = t.global;
+
+  // Set dark/light theme
+  useEffect(() => {
+    if (darkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('WILLOW_THEME', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('WILLOW_THEME', 'light');
     }
-  }, []);
+  }, [darkMode]);
 
   // 1. Listen for Authentication status
   useEffect(() => {
@@ -97,7 +119,7 @@ function AppContent() {
       });
     } catch (e) {
       console.error('Database Subscription Error', e);
-      showToast('Gagal memuat database realtime', 'error');
+      showToast(lang === 'ID' ? 'Gagal memuat database realtime' : 'Failed to load realtime database', 'error');
       setDbLoading(false);
     }
 
@@ -122,15 +144,15 @@ function AppContent() {
       if (editingTransaction) {
         // Edit Mode
         await updateTransaction(user.uid, editingTransaction.id, data);
-        showToast('Transaksi berhasil diperbarui!', 'success');
+        showToast(gt.txUpdateSuccess, 'success');
       } else {
         // Create Mode
         await addTransaction(user.uid, data);
-        showToast('Transaksi baru ditambahkan!', 'success');
+        showToast(gt.txSaveSuccess, 'success');
       }
     } catch (error) {
       console.error('Error saving transaction', error);
-      showToast('Gagal menyimpan transaksi', 'error');
+      showToast(gt.txSaveError, 'error');
     }
     setEditingTransaction(null);
   };
@@ -160,14 +182,14 @@ function AppContent() {
     try {
       if (deleteType === 'transaction') {
         await deleteTransaction(user.uid, deleteId);
-        showToast('Transaksi berhasil dihapus!', 'success');
+        showToast(gt.txDeleteSuccess, 'success');
       } else if (deleteType === 'budget') {
         await deleteBudget(user.uid, deleteId);
-        showToast('Limit anggaran berhasil dihapus!', 'success');
+        showToast(gt.budgetDeleteSuccess, 'success');
       }
     } catch (error) {
       console.error('Error deleting record', error);
-      showToast('Gagal menghapus data', 'error');
+      showToast(lang === 'ID' ? 'Gagal menghapus data' : 'Failed to delete data', 'error');
     }
     
     setDeleteId(null);
@@ -179,30 +201,35 @@ function AppContent() {
     if (!user) return;
     try {
       await saveBudget(user.uid, category, limit);
-      showToast(`Anggaran ${category} berhasil disimpan!`, 'success');
+      showToast(lang === 'ID' ? `Anggaran ${category} berhasil disimpan!` : `Budget for ${category} successfully saved!`, 'success');
     } catch (e) {
       console.error('Error saving budget', e);
-      showToast('Gagal mengatur limit anggaran', 'error');
+      showToast(gt.budgetError, 'error');
     }
   };
 
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      showToast('Berhasil keluar sesi', 'info');
+      showToast(lang === 'ID' ? 'Berhasil keluar sesi' : 'Logged out successfully', 'info');
       setActiveTab('home');
     } catch (e) {
-      showToast('Gagal melakukan logout', 'error');
+      showToast(gt.logoutError, 'error');
     }
   };
 
-  // Loading Splash Screen
+  // 1. Loading Splash Screen
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
+  // 2. Auth Loading state fallback (if splash finishes before auth, which is extremely rare)
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#F5F7FB] dark:bg-[#0B1224] flex flex-col items-center justify-center p-6 text-center">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
         <p className="text-xs font-semibold text-text-secondary mt-3">
-          Memuat sistem WillowWallet v2...
+          {lang === 'ID' ? 'Memuat sistem WillowWallet v2...' : 'Loading WillowWallet v2...'}
         </p>
       </div>
     );
@@ -210,7 +237,13 @@ function AppContent() {
 
   // If not authenticated, render Login Page
   if (!user) {
-    return <Login onLoginSuccess={() => showToast('Selamat datang kembali!', 'success')} />;
+    return (
+      <Login 
+        onLoginSuccess={() => showToast(lang === 'ID' ? 'Selamat datang kembali!' : 'Welcome back!', 'success')} 
+        lang={lang}
+        onLangChange={setLang}
+      />
+    );
   }
 
   return (
@@ -226,18 +259,6 @@ function AppContent() {
               WillowWallet v2
             </span>
           </div>
-          
-          {isSandboxMode ? (
-            <div className="text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5" />
-              Sandbox
-            </div>
-          ) : (
-            <div className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Database className="w-2.5 h-2.5" />
-              Realtime Sync
-            </div>
-          )}
         </div>
 
         {/* Scrollable View Area */}
@@ -247,7 +268,7 @@ function AppContent() {
           {dbLoading && (
             <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-surface/90 dark:bg-slate-800/90 shadow-soft border border-border-custom dark:border-slate-700/50 rounded-full py-1.5 px-3 flex items-center gap-2 text-[10px] font-semibold text-text-secondary">
               <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
-              Menyinkronkan data...
+              {gt.syncingData}
             </div>
           )}
 
@@ -271,6 +292,8 @@ function AppContent() {
                   setActiveTab(tab);
                 }
               }}
+              onViewTransaction={setDetailTransaction}
+              lang={lang}
             />
           )}
 
@@ -279,6 +302,8 @@ function AppContent() {
               transactions={transactions}
               onEditTransaction={handleEditTransactionClick}
               onDeleteTransaction={handleDeleteTransactionClick}
+              onViewTransaction={setDetailTransaction}
+              lang={lang}
             />
           )}
 
@@ -289,6 +314,7 @@ function AppContent() {
               categories={categories}
               onSaveBudget={handleSaveBudget}
               onDeleteBudget={handleDeleteBudgetClick}
+              lang={lang}
             />
           )}
 
@@ -298,6 +324,9 @@ function AppContent() {
               transactions={transactions}
               budgets={budgets}
               onLogout={handleLogout}
+              darkMode={darkMode}
+              onToggleDarkMode={() => setDarkMode(prev => !prev)}
+              lang={lang}
             />
           )}
 
@@ -311,6 +340,7 @@ function AppContent() {
             setEditingTransaction(null);
             setIsSheetOpen(true);
           }}
+          lang={lang}
         />
 
         {/* Add/Edit Bottom Sheet Modal */}
@@ -323,6 +353,17 @@ function AppContent() {
           onSubmit={handleSheetSubmit}
           categories={categories}
           editingTransaction={editingTransaction}
+          lang={lang}
+        />
+
+        {/* Transaction Detail Viewer Modal */}
+        <TransactionDetailModal 
+          isOpen={detailTransaction !== null}
+          onClose={() => setDetailTransaction(null)}
+          transaction={detailTransaction}
+          onEdit={handleEditTransactionClick}
+          onDelete={handleDeleteTransactionClick}
+          lang={lang}
         />
 
         {/* Confirm Delete Modals */}
@@ -333,12 +374,13 @@ function AppContent() {
             setDeleteType(null);
           }}
           onConfirm={handleConfirmDelete}
-          title={deleteType === 'transaction' ? 'Hapus Catatan' : 'Hapus Anggaran'}
+          title={deleteType === 'transaction' ? (lang === 'ID' ? 'Hapus Catatan' : 'Delete Record') : (lang === 'ID' ? 'Hapus Anggaran' : 'Delete Budget')}
           message={
             deleteType === 'transaction' 
-              ? 'Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini tidak dapat dibatalkan.' 
-              : 'Apakah Anda yakin ingin mematikan limit anggaran untuk kategori ini?'
+              ? (lang === 'ID' ? 'Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini tidak dapat dibatalkan.' : 'Are you sure you want to delete this transaction record? This action cannot be undone.') 
+              : (lang === 'ID' ? 'Apakah Anda yakin ingin mematikan limit anggaran untuk kategori ini?' : 'Are you sure you want to turn off the budget limit for this category?')
           }
+          lang={lang}
         />
 
       </div>
