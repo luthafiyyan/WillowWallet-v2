@@ -22,8 +22,14 @@ import { Home } from './pages/Home';
 import { Transactions } from './pages/Transactions';
 import { Analytics } from './pages/Analytics';
 import { Profile } from './pages/Profile';
-import { Loader2, Sparkles, Database } from 'lucide-react';
+import { Loader2, Sparkles, Database, RefreshCw } from 'lucide-react';
 import { APP_TRANSLATIONS } from './utils/lang';
+import { 
+  registerServiceWorker, 
+  initInstallPromptListener, 
+  triggerInstallPrompt 
+} from './services/pwa';
+import { AnimatePresence, motion } from 'motion/react';
 
 function AppContent() {
   const { showToast } = useToast();
@@ -36,6 +42,11 @@ function AppContent() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
+
+  // PWA & Connection states
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [swUpdateRegistration, setSwUpdateRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Navigation states
   const [activeTab, setActiveTab] = useState<TabId>('home');
@@ -73,6 +84,52 @@ function AppContent() {
       localStorage.setItem('WILLOW_THEME', 'light');
     }
   }, [darkMode]);
+
+  // PWA Service Worker & Install Listener Registration
+  useEffect(() => {
+    registerServiceWorker({
+      onUpdateAvailable: (registration) => {
+        setSwUpdateRegistration(registration);
+        showToast(
+          lang === 'ID' 
+            ? 'Versi baru tersedia! Silakan perbarui.' 
+            : 'A new version is available! Please update.', 
+          'info'
+        );
+      },
+      onInstalled: () => {
+        showToast(
+          lang === 'ID' 
+            ? 'WillowWallet siap digunakan offline!' 
+            : 'WillowWallet is ready for offline use!', 
+          'success'
+        );
+      },
+      onOfflineStatusChange: (offline) => {
+        setIsOffline(offline);
+        if (offline) {
+          showToast(
+            lang === 'ID'
+              ? 'Koneksi internet terputus. Menggunakan mode offline.'
+              : 'Connection lost. Working offline.',
+            'warning'
+          );
+        } else {
+          showToast(
+            lang === 'ID'
+              ? 'Koneksi kembali online! Menyinkronkan...'
+              : 'Connection restored! Syncing...',
+            'success'
+          );
+        }
+      }
+    });
+
+    initInstallPromptListener(() => {
+      setShowInstallPrompt(true);
+    });
+  }, [lang, showToast]);
+
 
   // 1. Listen for Authentication status
   useEffect(() => {
@@ -327,6 +384,14 @@ function AppContent() {
               darkMode={darkMode}
               onToggleDarkMode={() => setDarkMode(prev => !prev)}
               lang={lang}
+              showInstallBtn={showInstallPrompt}
+              onTriggerInstall={async () => {
+                const accepted = await triggerInstallPrompt();
+                if (accepted) {
+                  showToast(lang === 'ID' ? 'Aplikasi berhasil dipasang!' : 'Application installed successfully!', 'success');
+                  setShowInstallPrompt(false);
+                }
+              }}
             />
           )}
 
@@ -382,6 +447,85 @@ function AppContent() {
           }
           lang={lang}
         />
+
+        {/* Custom Install Prompt Dialog */}
+        <AnimatePresence>
+          {showInstallPrompt && !localStorage.getItem('WILLOW_INSTALL_DISMISSED') && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-40 bg-surface/95 dark:bg-slate-800/95 backdrop-blur-md p-5 rounded-3xl border border-border-custom dark:border-slate-700/60 shadow-medium flex flex-col gap-4 font-sans pointer-events-auto"
+            >
+              <div className="flex gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-6 h-6 animate-pulse" />
+                </div>
+                <div className="flex-grow">
+                  <h4 className="text-xs font-bold text-text-primary dark:text-slate-100">
+                    {lang === 'ID' ? 'Pasang WillowWallet' : 'Install WillowWallet'}
+                  </h4>
+                  <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-1 leading-normal">
+                    {lang === 'ID' 
+                      ? 'Nikmati pengalaman seperti aplikasi native dengan performa cepat dan akses offline.' 
+                      : 'Enjoy a native-like experience with fast performance and offline access.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2.5">
+                <button
+                  onClick={() => {
+                    localStorage.setItem('WILLOW_INSTALL_DISMISSED', 'true');
+                    setShowInstallPrompt(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl border border-border-custom dark:border-slate-700 text-xs font-semibold text-text-secondary dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer text-center"
+                >
+                  {lang === 'ID' ? 'Nanti' : 'Later'}
+                </button>
+                <button
+                  onClick={async () => {
+                    const accepted = await triggerInstallPrompt();
+                    if (accepted) {
+                      showToast(lang === 'ID' ? 'Terima kasih telah memasang aplikasi!' : 'Thank you for installing the app!', 'success');
+                      setShowInstallPrompt(false);
+                    }
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-emerald-600 text-xs font-semibold text-white transition-all cursor-pointer text-center shadow-soft"
+                >
+                  {lang === 'ID' ? 'Pasang' : 'Install'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Custom Update Service Worker Snackbar */}
+        <AnimatePresence>
+          {swUpdateRegistration && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="fixed top-4 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[400px] z-50 bg-primary text-white p-4 rounded-2xl shadow-medium flex items-center justify-between gap-3 backdrop-blur-sm pointer-events-auto"
+            >
+              <div className="flex items-center gap-2.5">
+                <RefreshCw className="w-4 h-4 animate-spin flex-shrink-0" />
+                <span className="text-xs font-bold leading-tight">
+                  {lang === 'ID' ? 'Versi baru tersedia!' : 'A new version is available!'}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  swUpdateRegistration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+                  window.location.reload();
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white text-primary text-[10px] font-bold hover:bg-slate-100 transition-all cursor-pointer whitespace-nowrap shadow-soft"
+              >
+                {lang === 'ID' ? 'Update Sekarang' : 'Update Now'}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>

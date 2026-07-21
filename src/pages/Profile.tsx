@@ -25,6 +25,8 @@ interface ProfileProps {
   darkMode?: boolean;
   onToggleDarkMode?: () => void;
   lang?: 'ID' | 'EN';
+  showInstallBtn?: boolean;
+  onTriggerInstall?: () => void;
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -35,6 +37,8 @@ export const Profile: React.FC<ProfileProps> = ({
   darkMode: propDarkMode,
   onToggleDarkMode,
   lang = 'ID',
+  showInstallBtn = false,
+  onTriggerInstall,
 }) => {
   const t = APP_TRANSLATIONS[lang].profile;
   const [localDarkMode, setLocalDarkMode] = useState(() => {
@@ -204,6 +208,29 @@ export const Profile: React.FC<ProfileProps> = ({
                 </div>
                 <ChevronRight className="w-4 h-4 text-text-secondary" />
               </button>
+
+              {/* Install PWA App Row */}
+              {showInstallBtn && (
+                <button
+                  onClick={onTriggerInstall}
+                  className="w-full p-4 flex items-center justify-between hover:bg-brand-bg dark:hover:bg-slate-700/40 transition-colors cursor-pointer text-left font-sans"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-text-primary dark:text-slate-100">
+                        {lang === 'ID' ? 'Pasang Aplikasi' : 'Install App'}
+                      </span>
+                      <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5">
+                        {lang === 'ID' ? 'Dapatkan pengalaman seluler penuh secara offline' : 'Get full mobile banking experience offline'}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-text-secondary" />
+                </button>
+              )}
 
             </div>
           </div>
