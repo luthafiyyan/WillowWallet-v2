@@ -60,6 +60,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
   const [budgetCategory, setBudgetCategory] = useState(categories[0] || 'Lainnya');
   const [budgetLimit, setBudgetLimit] = useState('');
   const [showAddBudget, setShowAddBudget] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const getLocalizedCategoryName = (catName: string) => {
     if (lang === 'ID') return catName;
@@ -761,57 +762,121 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     {t.noExpense}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-5 gap-4 items-center">
-                    
-                    {/* Mini Pie chart */}
-                    <div className="col-span-2 h-32 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={categoryChartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={25}
-                            outerRadius={45}
-                            paddingAngle={3}
-                            dataKey="value"
-                          >
-                            {categoryChartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-5 gap-4 items-center">
+                      
+                      {/* Mini Pie chart */}
+                      <div className="col-span-2 h-32 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Tooltip
+                              formatter={(value: any, name: any) => [formatRupiah(Number(value)), getLocalizedCategoryName(String(name))]}
+                              contentStyle={{
+                                background: '#1E293B',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#fff',
+                                fontSize: '11px',
+                                padding: '4px 8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                              }}
+                              itemStyle={{ color: '#fff', fontWeight: 600 }}
+                            />
+                            <Pie
+                              data={categoryChartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={25}
+                              outerRadius={45}
+                              paddingAngle={3}
+                              dataKey="value"
+                              nameKey="name"
+                              onMouseEnter={(_, index) => setActiveCategory(categoryChartData[index]?.name)}
+                              onMouseLeave={() => setActiveCategory(null)}
+                              onClick={(_, index) => {
+                                const catName = categoryChartData[index]?.name;
+                                setActiveCategory(activeCategory === catName ? null : catName);
+                              }}
+                            >
+                              {categoryChartData.map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={entry.color}
+                                  stroke={activeCategory === entry.name ? '#ffffff' : 'none'}
+                                  strokeWidth={activeCategory === entry.name ? 2 : 0}
+                                  opacity={activeCategory && activeCategory !== entry.name ? 0.45 : 1}
+                                  className="transition-all duration-200 cursor-pointer"
+                                />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Progress rows of categories */}
+                      <div className="col-span-3 space-y-2 max-h-40 overflow-y-auto no-scrollbar pr-1">
+                        {categoryChartData.slice(0, 4).map((item) => {
+                          const style = getCategoryStyle(item.name);
+                          const totalVal = categoryChartData.reduce((acc, curr) => acc + curr.value, 0);
+                          const percent = totalVal > 0 ? Math.round((item.value / totalVal) * 100) : 0;
+                          const isSelected = activeCategory === item.name;
+
+                          return (
+                            <div 
+                              key={item.name} 
+                              onClick={() => setActiveCategory(isSelected ? null : item.name)}
+                              onMouseEnter={() => setActiveCategory(item.name)}
+                              onMouseLeave={() => setActiveCategory(null)}
+                              className={`group space-y-1 p-1.5 -mx-1.5 rounded-xl transition-all duration-200 cursor-pointer ${
+                                isSelected 
+                                  ? 'bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/30' 
+                                  : 'hover:bg-brand-bg/70 dark:hover:bg-slate-700/40'
+                              }`}
+                              title={`${getLocalizedCategoryName(item.name)}: ${formatRupiah(item.value)} (${percent}%)`}
+                            >
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="font-bold text-text-primary dark:text-slate-200 line-clamp-1 flex items-center gap-1.5">
+                                  <span 
+                                    className="w-2 h-2 rounded-full flex-shrink-0" 
+                                    style={{ backgroundColor: item.color }} 
+                                  />
+                                  {getLocalizedCategoryName(item.name)}
+                                </span>
+                                
+                                <div className="flex items-center gap-1.5 font-semibold text-right flex-shrink-0">
+                                  {/* Reveal Rupiah nominal on hover or tap */}
+                                  <span className={`text-[10px] font-bold text-primary dark:text-emerald-400 transition-all duration-200 ${
+                                    isSelected ? 'inline-block' : 'hidden group-hover:inline-block'
+                                  }`}>
+                                    {formatRupiah(item.value)}
+                                  </span>
+                                  
+                                  <span className={`transition-colors duration-200 ${
+                                    isSelected ? 'font-bold text-primary dark:text-emerald-400' : 'text-text-secondary dark:text-slate-400 font-semibold'
+                                  }`}>
+                                    {percent}%
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="w-full h-1 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all duration-300 ${isSelected ? 'brightness-110 h-1.5' : ''}`} 
+                                  style={{ width: `${percent}%`, backgroundColor: item.color }} 
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
                     </div>
 
-                    {/* Progress rows of categories */}
-                    <div className="col-span-3 space-y-2 max-h-40 overflow-y-auto no-scrollbar pr-1">
-                      {categoryChartData.slice(0, 4).map((item) => {
-                        const style = getCategoryStyle(item.name);
-                        const totalVal = categoryChartData.reduce((acc, curr) => acc + curr.value, 0);
-                        const percent = totalVal > 0 ? Math.round((item.value / totalVal) * 100) : 0;
-
-                        return (
-                          <div key={item.name} className="space-y-1">
-                            <div className="flex justify-between items-center text-[10px]">
-                              <span className="font-bold text-text-primary dark:text-slate-200 line-clamp-1">
-                                {getLocalizedCategoryName(item.name)}
-                              </span>
-                              <span className="font-semibold text-text-secondary dark:text-slate-400">
-                                {percent}%
-                              </span>
-                            </div>
-                            <div className="w-full h-1 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full rounded-full" 
-                                style={{ width: `${percent}%`, backgroundColor: item.color }} 
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
+                    <p className="text-[9px] text-text-secondary/70 italic text-right">
+                      {lang === 'ID' 
+                        ? '* Sorot / ketuk kategori untuk melihat nominal Rupiah' 
+                        : '* Hover / tap category to view Rupiah amount'}
+                    </p>
                   </div>
                 )}
               </div>
