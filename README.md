@@ -189,7 +189,7 @@ To switch from local sandbox mode to your personal cloud database:
 
 Developed with care by **Luthfi Hafiyyan Nabila**
 - GitHub: [@luthafiyyan](https://github.com/luthafiyyan)
-- Instagram: [@luthafiyyan_](https://www.instagram.com/luthafiyyan_/)
+- Threads: [@luthafiyyan_](https://www.threads.com/@luthafiyyan_)
 
 ---
 
