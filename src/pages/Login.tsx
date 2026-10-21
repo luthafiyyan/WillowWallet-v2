@@ -139,10 +139,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-[#E8EDF4] dark:border-slate-700/60 flex items-center justify-center p-2">
             <img 
-              src="https://i.postimg.cc/15M87QGM/Willow-Wallet-icon.png" 
+              src="/logo.png" 
               alt="Willow Wallet Icon" 
               className="w-full h-full object-contain"
-              referrerPolicy="no-referrer"
             />
           </div>
           <div className="flex items-center gap-1">

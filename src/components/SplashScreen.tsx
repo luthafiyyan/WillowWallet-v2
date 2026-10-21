@@ -57,9 +57,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           {/* Logo container */}
           <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-[28px] shadow-medium flex items-center justify-center p-4 border border-[#E8EDF4] dark:border-slate-700">
             <img 
-              src="https://i.postimg.cc/15M87QGM/Willow-Wallet-icon.png" 
+              src="/logo.png" 
               alt="Willow Wallet Logo" 
-              referrerPolicy="no-referrer"
               className="w-full h-full object-contain"
             />
           </div>
