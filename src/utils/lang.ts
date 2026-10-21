@@ -87,6 +87,8 @@ export const APP_TRANSLATIONS = {
       subtitle: "Pantau alur kas, tren pengeluaran, dan limitasi anggaran.",
       tabTrends: "Tren & Aliran Kas",
       tabBudgets: "Limitasi Anggaran",
+      trendsTab: "Tren & Aliran Kas",
+      budgetsTab: "Limitasi Anggaran",
       monthlyLimit: "Limit Bulanan",
       setLimitTitle: "Atur Limit Anggaran",
       selectCategory: "Pilih Kategori",
@@ -104,7 +106,16 @@ export const APP_TRANSLATIONS = {
       activeBudgets: "Daftar Anggaran Aktif",
       budgetRemaining: "Sisa anggaran",
       budgetOverspent: "Melebihi limit sebesar",
-      deleteBudgetConfirm: "Hapus Limit"
+      deleteBudgetConfirm: "Hapus Limit",
+      periodTitle: "Periode Analisis",
+      currentMonthLabel: "Bulan Ini",
+      historicalLabel: "Historis",
+      prevMonthBtn: "Bulan Sebelumnya",
+      nextMonthBtn: "Bulan Berikutnya",
+      resetToCurrentMonth: "Kembali ke Bulan Ini",
+      monthExpensesTitle: "PENGELUARAN BULAN INI",
+      monthExpenseSubtitle: "Total periode terpilih",
+      noTxInMonth: "Belum ada transaksi di bulan ini."
     },
     profile: {
       title: "Profil Saya",
@@ -241,6 +252,8 @@ export const APP_TRANSLATIONS = {
       subtitle: "Monitor cash flow, expense trends, and budget limits.",
       tabTrends: "Trends & Cash Flow",
       tabBudgets: "Budget Limits",
+      trendsTab: "Trends & Cash Flow",
+      budgetsTab: "Budget Limits",
       monthlyLimit: "Monthly Limit",
       setLimitTitle: "Set Budget Limit",
       selectCategory: "Select Category",
@@ -258,7 +271,16 @@ export const APP_TRANSLATIONS = {
       activeBudgets: "Active Budget Limits",
       budgetRemaining: "Budget remaining",
       budgetOverspent: "Overspent limit by",
-      deleteBudgetConfirm: "Delete Limit"
+      deleteBudgetConfirm: "Delete Limit",
+      periodTitle: "Analysis Period",
+      currentMonthLabel: "Current Month",
+      historicalLabel: "Historical",
+      prevMonthBtn: "Previous Month",
+      nextMonthBtn: "Next Month",
+      resetToCurrentMonth: "Back to Current Month",
+      monthExpensesTitle: "SELECTED MONTH EXPENSES",
+      monthExpenseSubtitle: "Total for selected period",
+      noTxInMonth: "No transactions recorded for this month."
     },
     profile: {
       title: "My Profile",

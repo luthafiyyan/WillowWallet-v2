@@ -14,7 +14,10 @@ import {
   Percent,
   CheckCircle2,
   AlertTriangle,
-  SlidersHorizontal
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw
 } from 'lucide-react';
 import { Transaction, Budget } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
@@ -92,28 +95,96 @@ export const Analytics: React.FC<AnalyticsProps> = ({
   };
 
   // --- ANALYSIS ENGINE ---
+  // Realtime current month prefix ("YYYY-MM")
   const currentMonthPrefix = useMemo(() => new Date().toISOString().substring(0, 7), []);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthPrefix);
+
+  const isCurrentMonth = selectedMonth === currentMonthPrefix;
+
+  // Compute all available months from transactions history + current month
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    set.add(currentMonthPrefix);
+    transactions.forEach((tx) => {
+      if (tx.date && tx.date.length >= 7) {
+        set.add(tx.date.substring(0, 7));
+      }
+    });
+    if (!set.has(selectedMonth)) {
+      set.add(selectedMonth);
+    }
+    return Array.from(set).sort().reverse();
+  }, [transactions, currentMonthPrefix, selectedMonth]);
+
+  // Format month and year label (e.g. "Oktober 2026")
+  const formatMonthLabel = (ym: string) => {
+    try {
+      const [yStr, mStr] = ym.split('-');
+      const year = parseInt(yStr, 10);
+      const monthIndex = parseInt(mStr, 10) - 1;
+      const monthsID = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      const monthsEN = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const name = lang === 'ID' ? monthsID[monthIndex] : monthsEN[monthIndex];
+      return `${name} ${year}`;
+    } catch {
+      return ym;
+    }
+  };
+
+  const [selectedYear, selectedMonthNumber] = useMemo(() => {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    return [y, m];
+  }, [selectedMonth]);
+
+  const daysInSelectedMonth = useMemo(() => {
+    return new Date(selectedYear, selectedMonthNumber, 0).getDate();
+  }, [selectedYear, selectedMonthNumber]);
+
+  // Month navigation handlers
+  const handlePrevMonth = () => {
+    const d = new Date(selectedYear, selectedMonthNumber - 1 - 1, 1);
+    const newY = d.getFullYear();
+    const newM = String(d.getMonth() + 1).padStart(2, '0');
+    setSelectedMonth(`${newY}-${newM}`);
+  };
+
+  const handleNextMonth = () => {
+    const d = new Date(selectedYear, selectedMonthNumber - 1 + 1, 1);
+    const newY = d.getFullYear();
+    const newM = String(d.getMonth() + 1).padStart(2, '0');
+    setSelectedMonth(`${newY}-${newM}`);
+  };
+
+  const handleResetMonth = () => {
+    setSelectedMonth(currentMonthPrefix);
+  };
 
   const stats = useMemo(() => {
     let inc = 0;
     let exp = 0;
     
-    // Monthly statistics
+    // Monthly statistics for selected period
     let monthInc = 0;
     let monthExp = 0;
 
-    // Daily average calculation (for current month)
+    // Daily average calculation (for selected month)
     const dailySpendMap: Record<string, number> = {};
     const categorySpendMap: Record<string, number> = {};
 
     transactions.forEach((tx) => {
-      const isCurrentMonth = tx.date.startsWith(currentMonthPrefix);
+      const isInSelectedMonth = tx.date.startsWith(selectedMonth);
       if (tx.type === 'income') {
         inc += tx.amount;
-        if (isCurrentMonth) monthInc += tx.amount;
+        if (isInSelectedMonth) monthInc += tx.amount;
       } else {
         exp += tx.amount;
-        if (isCurrentMonth) {
+        if (isInSelectedMonth) {
           monthExp += tx.amount;
           dailySpendMap[tx.date] = (dailySpendMap[tx.date] || 0) + tx.amount;
           categorySpendMap[tx.category] = (categorySpendMap[tx.category] || 0) + tx.amount;
@@ -121,8 +192,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({
       }
     });
 
-    const activeDays = Object.keys(dailySpendMap).length || 1;
-    const averageDailySpending = monthExp / Math.max(1, new Date().getDate()); // Average based on past days of current month
+    // In current month, divide by days elapsed so far; in past month, divide by total days in that month
+    const daysPassed = isCurrentMonth ? Math.max(1, new Date().getDate()) : Math.max(1, daysInSelectedMonth);
+    const averageDailySpending = monthExp / daysPassed;
 
     const savingRate = monthInc > 0 ? Math.max(0, Math.round(((monthInc - monthExp) / monthInc) * 100)) : 0;
 
@@ -147,9 +219,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({
       largestAmount,
       categorySpendMap
     };
-  }, [transactions, currentMonthPrefix]);
+  }, [transactions, selectedMonth, isCurrentMonth, daysInSelectedMonth]);
 
-  // Compute category budget maps
+  // Compute category budget maps for selected month
   const activeBudgets = useMemo(() => {
     return budgets.map((b) => {
       const spent = stats.categorySpendMap[b.category] || 0;
@@ -196,16 +268,16 @@ export const Analytics: React.FC<AnalyticsProps> = ({
       score = 55;
       colorClass = 'text-amber-500 dark:text-amber-400';
       bgClass = 'bg-amber-500/10 dark:bg-amber-500/20';
-      advice = 'Tabungan Anda tipis bulan ini. Coba batasi pengeluaran non-prioritas.';
-      enAdvice = 'Your savings are thin this month. Try limiting non-essential expenses.';
+      advice = 'Tabungan Anda tipis di periode ini. Coba batasi pengeluaran non-prioritas.';
+      enAdvice = 'Your savings were thin in this period. Try limiting non-essential expenses.';
     } else if (rate <= 0) {
       label = 'Defisit Pengeluaran';
       enLabel = 'Critical / Deficit';
       score = 30;
       colorClass = 'text-rose-500 dark:text-rose-400';
       bgClass = 'bg-rose-500/10 dark:bg-rose-500/20';
-      advice = 'Pengeluaran Anda melampaui pendapatan bulan ini. Segera evaluasi anggaran!';
-      enAdvice = 'Your spending exceeded your income this month. Immediately evaluate your budget!';
+      advice = 'Pengeluaran melampaui pendapatan di periode ini. Evaluasi pos pengeluaran Anda!';
+      enAdvice = 'Spending exceeded income in this period. Evaluate your expenditure breakdown!';
     }
 
     return { label, enLabel, score, colorClass, bgClass, advice, enAdvice };
@@ -215,7 +287,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
     let needsSpent = 0;
     let wantsSpent = 0;
     transactions.forEach(tx => {
-      if (tx.type === 'expense' && tx.date.startsWith(currentMonthPrefix)) {
+      if (tx.type === 'expense' && tx.date.startsWith(selectedMonth)) {
         const cat = tx.category.toLowerCase();
         if (
           cat.includes('makan') || cat.includes('food') || 
@@ -241,21 +313,20 @@ export const Analytics: React.FC<AnalyticsProps> = ({
       needsPercent,
       wantsPercent
     };
-  }, [transactions, currentMonthPrefix]);
+  }, [transactions, selectedMonth]);
 
-  // Chart Data: Monthly Cashflow (Last 6 Months)
+  // Chart Data: Monthly Cashflow (Rolling 6 Months ending at selectedMonth)
   const monthlyChartData = useMemo(() => {
     const months = lang === 'ID' 
       ? ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
       : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const map: Record<string, { income: number; expense: number; monthName: string }> = {};
 
-    // Get last 6 months boundaries
+    // Get 6 months boundaries ending at selectedMonth
     const last6MonthsKeys: string[] = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const key = d.toISOString().substring(0, 7); // "YYYY-MM"
+      const d = new Date(selectedYear, selectedMonthNumber - 1 - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const monthIndex = d.getMonth();
       const year = d.getFullYear().toString().substring(2);
       last6MonthsKeys.push(key);
@@ -283,7 +354,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
       [lang === 'ID' ? 'Pengeluaran' : 'Expense']: map[k].expense,
       Cashflow: map[k].income - map[k].expense
     }));
-  }, [transactions, lang]);
+  }, [transactions, lang, selectedYear, selectedMonthNumber]);
 
   // Chart Data: Category Breakdown Pie Chart
   const categoryChartData = useMemo(() => {
@@ -300,15 +371,18 @@ export const Analytics: React.FC<AnalyticsProps> = ({
   // --- DYNAMIC AI INSIGHTS ENGINE ---
   const automatedInsights = useMemo(() => {
     const list: string[] = [];
+    const periodLabel = isCurrentMonth 
+      ? (lang === 'ID' ? 'bulan ini' : 'this month')
+      : (lang === 'ID' ? `pada ${formatMonthLabel(selectedMonth)}` : `in ${formatMonthLabel(selectedMonth)}`);
 
     if (lang === 'EN') {
       // Rule 1: Saving Rate Assessment
       if (stats.savingRate >= 40) {
-        list.push(`Your saving rate is excellent (${stats.savingRate}%). You are securing a major part of this month's income.`);
+        list.push(`Your saving rate ${periodLabel} is excellent (${stats.savingRate}%). You secured a major part of your income.`);
       } else if (stats.savingRate > 15) {
-        list.push(`Your savings rate is secure at ${stats.savingRate}%. Keep your spending steady.`);
+        list.push(`Your savings rate ${periodLabel} was steady at ${stats.savingRate}%.`);
       } else if (stats.monthIncome > 0 && stats.savingRate <= 10) {
-        list.push(`Your saving rate is below target (${stats.savingRate}%). Try curbing non-essential spending.`);
+        list.push(`Your saving rate ${periodLabel} was below target (${stats.savingRate}%). Non-essential spending was high.`);
       }
 
       // Rule 2: Budget Warnings
@@ -317,29 +391,31 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
       if (overBudgets.length > 0) {
         const names = overBudgets.map(b => getLocalizedCategoryName(b.category)).join(', ');
-        list.push(`Budget blown! Kategori [${names}] has exceeded your designated limit.`);
+        list.push(`Budget limit exceeded! Category [${names}] exceeded designated limit.`);
       }
       if (nearOverBudgets.length > 0) {
         const names = nearOverBudgets.map(b => getLocalizedCategoryName(b.category)).join(', ');
-        list.push(`Warning: Expenses for [${names}] are nearing 80% of your budget limit.`);
+        list.push(`Warning: Expenses for [${names}] reached 80% or more of your budget limit.`);
       }
 
       // Rule 3: Largest category spending
       if (stats.largestAmount > 0) {
-        list.push(`Your largest spending category this month is [${getLocalizedCategoryName(stats.largestCategory)}] totaling ${formatRupiah(stats.largestAmount)}.`);
+        list.push(`Your largest spending category ${periodLabel} was [${getLocalizedCategoryName(stats.largestCategory)}] totaling ${formatRupiah(stats.largestAmount)}.`);
       }
 
       if (list.length === 0) {
-        list.push("Start recording transactions to see smart financial insights.");
+        list.push(stats.monthIncome === 0 && stats.monthExpense === 0 
+          ? "No transactions recorded for this period." 
+          : "Start recording transactions to see smart financial insights.");
       }
     } else {
       // Rule 1: Saving Rate Assessment
       if (stats.savingRate >= 40) {
-        list.push(`Laju Menabung Anda sangat prima (${stats.savingRate}%). Anda mengamankan sebagian besar pendapatan bulan ini.`);
+        list.push(`Laju Menabung Anda ${periodLabel} sangat prima (${stats.savingRate}%). Anda berhasil mengamankan porsi besar pendapatan.`);
       } else if (stats.savingRate > 15) {
-        list.push(`Tingkat tabungan Anda aman di angka ${stats.savingRate}%. Pertahankan kestabilan pengeluaran Anda.`);
+        list.push(`Tingkat tabungan Anda ${periodLabel} stabil di angka ${stats.savingRate}%.`);
       } else if (stats.monthIncome > 0 && stats.savingRate <= 10) {
-        list.push(`Saving rate Anda di bawah target ideal (${stats.savingRate}%). Coba batasi pengeluaran non-prioritas.`);
+        list.push(`Saving rate Anda ${periodLabel} di bawah target ideal (${stats.savingRate}%). Pengeluaran non-prioritas cukup dominan.`);
       }
 
       // Rule 2: Budget Warnings
@@ -348,25 +424,27 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
       if (overBudgets.length > 0) {
         const names = overBudgets.map(b => b.category).join(', ');
-        list.push(`Anggaran jebol! Kategori [${names}] telah melampaui limit batas yang Anda tentukan.`);
+        list.push(`Anggaran jebol! Kategori [${names}] melampaui limit batas yang Anda tentukan.`);
       }
       if (nearOverBudgets.length > 0) {
         const names = nearOverBudgets.map(b => b.category).join(', ');
-        list.push(`Waspada: Pengeluaran [${names}] hampir melampaui 80% dari limit anggaran Anda.`);
+        list.push(`Waspada: Pengeluaran [${names}] mendekati atau melewati 80% dari batas anggaran.`);
       }
 
       // Rule 3: Largest category spending
       if (stats.largestAmount > 0) {
-        list.push(`Kategori pengeluaran terbesar Anda bulan ini adalah [${stats.largestCategory}] sebesar ${formatRupiah(stats.largestAmount)}.`);
+        list.push(`Kategori pengeluaran terbesar Anda ${periodLabel} adalah [${stats.largestCategory}] sebesar ${formatRupiah(stats.largestAmount)}.`);
       }
 
       if (list.length === 0) {
-        list.push("Mulailah mencatat transaksi untuk memunculkan analisis keuangan pintar.");
+        list.push(stats.monthIncome === 0 && stats.monthExpense === 0 
+          ? "Belum ada catatan transaksi pada periode bulan ini." 
+          : "Mulailah mencatat transaksi untuk memunculkan analisis keuangan pintar.");
       }
     }
 
     return list;
-  }, [stats, activeBudgets, lang]);
+  }, [stats, activeBudgets, lang, isCurrentMonth, selectedMonth]);
 
   return (
     <div className="space-y-6 pb-28 animate-fade-in">
@@ -394,6 +472,79 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         >
           <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
           {t.budgetsTab}
+        </button>
+      </div>
+
+      {/* Month Filter Selector Bar */}
+      <div className="bg-surface dark:bg-slate-800 p-2 sm:p-2.5 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between gap-2">
+        {/* Prev Month Button */}
+        <button
+          type="button"
+          onClick={handlePrevMonth}
+          aria-label={t.prevMonthBtn}
+          title={t.prevMonthBtn}
+          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-600 transition-all flex items-center gap-1 cursor-pointer"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline text-xs font-semibold">{t.prevMonthBtn}</span>
+        </button>
+
+        {/* Center: Month Display & Quick Dropdown Picker */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-bg dark:bg-slate-900/40 border border-border-custom dark:border-slate-700/60 hover:border-primary/50 transition-colors">
+              <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-text-primary dark:text-slate-100">
+                {formatMonthLabel(selectedMonth)}
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                isCurrentMonth 
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+              }`}>
+                {isCurrentMonth ? t.currentMonthLabel : t.historicalLabel}
+              </span>
+              
+              {/* Overlay select for direct 1-click jump to any month */}
+              <select
+                aria-label={t.periodTitle}
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              >
+                {availableMonths.map((ym) => (
+                  <option key={ym} value={ym} className="text-slate-900 bg-white dark:bg-slate-800 dark:text-slate-100">
+                    {formatMonthLabel(ym)} {ym === currentMonthPrefix ? `(${t.currentMonthLabel})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Quick reset to current month button if historical month is selected */}
+          {!isCurrentMonth && (
+            <button
+              type="button"
+              onClick={handleResetMonth}
+              title={t.resetToCurrentMonth}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{t.resetToCurrentMonth}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Next Month Button */}
+        <button
+          type="button"
+          onClick={handleNextMonth}
+          aria-label={t.nextMonthBtn}
+          title={t.nextMonthBtn}
+          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-600 transition-all flex items-center gap-1 cursor-pointer"
+        >
+          <span className="hidden sm:inline text-xs font-semibold">{t.nextMonthBtn}</span>
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
@@ -429,13 +580,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">
-                  {lang === 'ID' ? 'PENGELUARAN BULAN INI' : 'MONTH EXPENSES'}
+                  {isCurrentMonth ? (lang === 'ID' ? 'PENGELUARAN BULAN INI' : 'MONTH EXPENSES') : t.monthExpensesTitle}
                 </span>
                 <h4 className="text-lg font-bold text-rose-500 dark:text-rose-400 line-clamp-1">
                   {formatRupiah(stats.monthExpense)}
                 </h4>
                 <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold uppercase">
-                  {lang === 'ID' ? 'Total bulan ini' : 'Total this month'}
+                  {isCurrentMonth ? (lang === 'ID' ? 'Total bulan ini' : 'Total this month') : formatMonthLabel(selectedMonth)}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0 ml-3">
@@ -453,7 +604,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                   {formatRupiah(stats.averageDailySpending)}
                 </h4>
                 <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold uppercase">
-                  {t.avgDailySubtitle}
+                  {isCurrentMonth ? t.avgDailySubtitle : (lang === 'ID' ? `Rerata per hari (${daysInSelectedMonth} hari)` : `Daily avg (${daysInSelectedMonth} days)`)}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center flex-shrink-0 ml-3">
@@ -568,7 +719,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     {t.cashflowTitle}
                   </h4>
                   <p className="text-[10px] text-text-secondary">
-                    {t.cashflowSubtitle}
+                    {t.cashflowSubtitle} • {lang === 'ID' ? `6 bulan hingga ${formatMonthLabel(selectedMonth)}` : `6 months up to ${formatMonthLabel(selectedMonth)}`}
                   </p>
                 </div>
 
@@ -601,7 +752,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     {t.proportionTitle}
                   </h4>
                   <p className="text-[10px] text-text-secondary">
-                    {t.proportionSubtitle}
+                    {t.proportionSubtitle} • {formatMonthLabel(selectedMonth)}
                   </p>
                 </div>
 
@@ -708,7 +859,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                   {t.categoryBudgets}
                 </h4>
                 <p className="text-[10px] text-text-secondary">
-                  {t.categoryBudgetsSubtitle}
+                  {t.categoryBudgetsSubtitle} • {formatMonthLabel(selectedMonth)}
                 </p>
               </div>
               
