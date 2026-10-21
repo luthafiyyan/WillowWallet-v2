@@ -9,7 +9,8 @@ import {
   updateTransaction,
   deleteTransaction,
   saveBudget,
-  deleteBudget
+  deleteBudget,
+  saveCategories
 } from './services/db';
 import { ToastProvider, useToast } from './components/Toast';
 import { BottomNav, TabId } from './components/BottomNav';
@@ -380,10 +381,27 @@ function AppContent() {
               user={user}
               transactions={transactions}
               budgets={budgets}
+              categories={categories}
               onLogout={handleLogout}
               darkMode={darkMode}
               onToggleDarkMode={() => setDarkMode(prev => !prev)}
               lang={lang}
+              onSelectLanguage={(newLang) => setLang(newLang)}
+              onAddCategory={async (newCat) => {
+                const trimmed = newCat.trim();
+                if (!trimmed || categories.includes(trimmed)) return;
+                const updated = [...categories, trimmed];
+                setCategories(updated);
+                if (user) {
+                  await saveCategories(user.uid, updated);
+                }
+                showToast(
+                  lang === 'ID' 
+                    ? `Kategori "${trimmed}" berhasil ditambahkan!` 
+                    : `Category "${trimmed}" added!`, 
+                  'success'
+                );
+              }}
               showInstallBtn={showInstallPrompt}
               onTriggerInstall={async () => {
                 const accepted = await triggerInstallPrompt();
