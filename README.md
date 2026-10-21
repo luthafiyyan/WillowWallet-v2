@@ -1,4 +1,4 @@
-# WillowWallet v2 - Modern Mobile Banking Wallet Tracker
+# WillowWallet v2 - Modern Personal Finance & Expense Tracker
 
 WillowWallet v2 adalah perombakan total dari WillowWallet asli. Aplikasi ini dibangun kembali dengan arsitektur modern full-stack menggunakan **React 19**, **Vite**, **TypeScript**, **Recharts**, dan **Lucide Icons** dengan kepatuhan 100% terhadap struktur data Firebase Authentication & Realtime Database lama Anda.
 
@@ -6,7 +6,7 @@ WillowWallet v2 adalah perombakan total dari WillowWallet asli. Aplikasi ini dib
 
 ## 🌟 Fitur Utama
 
-- **Premium Mobile Banking UI/UX**: Terinspirasi oleh pola desain intuitif Bank Jago, Monzo, dan Revolut. Memiliki sudut membulat yang lebar, spasi yang lega, dan responsif maksimal.
+- **Modern Minimalist UI/UX**: Antarmuka bersih, responsif, dan mudah digunakan untuk mencatat pengeluaran harian. Memiliki sudut membulat yang lebar, spasi yang lega, dan responsif maksimal.
 - **Kepatuhan Struktur Database**: Beroperasi 100% di atas struktur node database Firebase Anda tanpa mengubah path, nama field, ataupun lokasi data.
 - **Dual-Mode Engine (Sandbox vs Live)**:
   - **Sandbox Mode**: Aktif secara otomatis jika kredensial Firebase tidak terdeteksi. Menyediakan simulasi data offline di dalam browser menggunakan `localStorage`.

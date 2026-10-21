@@ -146,7 +146,7 @@ export const APP_TRANSLATIONS = {
       inputCategoryPlaceholder: "Nama kategori baru...",
       categoryCount: "kategori terdaftar",
       logoutBtn: "Keluar Sesi Akun",
-      appVersion: "WillowWallet v2.2.0 • Modern Mobile Banking PWA"
+      appVersion: "WillowWallet v2.2.0 • Pencatat Keuangan Pribadi PWA"
     },
     components: {
       bottomSheet: {
@@ -331,7 +331,7 @@ export const APP_TRANSLATIONS = {
       inputCategoryPlaceholder: "New category name...",
       categoryCount: "registered categories",
       logoutBtn: "Log Out Account",
-      appVersion: "WillowWallet v2.2.0 • Modern Mobile Banking PWA"
+      appVersion: "WillowWallet v2.2.0 • Personal Finance Tracker PWA"
     },
     components: {
       bottomSheet: {

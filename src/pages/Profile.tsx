@@ -419,7 +419,7 @@ export const Profile: React.FC<ProfileProps> = ({
                         {lang === 'ID' ? 'Pasang Aplikasi' : 'Install App'}
                       </span>
                       <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5">
-                        {lang === 'ID' ? 'Dapatkan pengalaman seluler penuh secara offline' : 'Get full mobile banking experience offline'}
+                        {lang === 'ID' ? 'Dapatkan pengalaman seluler penuh secara offline' : 'Get full app experience offline'}
                       </p>
                     </div>
                   </div>
