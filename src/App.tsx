@@ -305,40 +305,22 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#060B14] md:py-8 flex justify-center items-center p-0 md:p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#F0F4F8] dark:bg-[#060B14] flex flex-col relative overflow-x-hidden">
       {/* Ambient Fluid Background Orbs for Liquid Glass Refraction */}
-      <div className="fixed -top-24 -left-24 w-96 md:w-[500px] h-96 md:h-[500px] rounded-full bg-emerald-500/15 dark:bg-emerald-500/10 blur-[120px] pointer-events-none -z-10" />
-      <div className="fixed -bottom-24 -right-24 w-96 md:w-[500px] h-96 md:h-[500px] rounded-full bg-teal-400/15 dark:bg-cyan-500/10 blur-[130px] pointer-events-none -z-10" />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[600px] h-[350px] md:h-[600px] rounded-full bg-emerald-400/8 dark:bg-emerald-600/5 blur-[140px] pointer-events-none -z-10" />
+      <div className="fixed -top-24 -left-24 w-96 md:w-[600px] h-96 md:h-[600px] rounded-full bg-emerald-500/15 dark:bg-emerald-500/10 blur-[130px] pointer-events-none -z-10" />
+      <div className="fixed -bottom-24 -right-24 w-96 md:w-[600px] h-96 md:h-[600px] rounded-full bg-teal-400/15 dark:bg-cyan-500/10 blur-[140px] pointer-events-none -z-10" />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[700px] h-[350px] md:h-[700px] rounded-full bg-emerald-400/8 dark:bg-emerald-600/5 blur-[150px] pointer-events-none -z-10" />
 
-      {/* Centered Modern Responsive Liquid Glass Container */}
-      <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl min-h-screen md:min-h-[86vh] md:max-h-[92vh] md:rounded-[40px] bg-white/75 dark:bg-[#0A1224]/85 backdrop-blur-2xl shadow-2xl md:border border-white/80 dark:border-white/10 flex flex-col relative overflow-hidden transition-all duration-300">
+      {/* Main Full-Screen View Area */}
+      <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 relative z-10">
         
-        {/* Sleek Liquid Header Strip */}
-        <div className="px-6 py-3 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-b border-white/60 dark:border-white/10 flex items-center justify-between flex-shrink-0 z-30">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50 animate-pulse" />
-            <span className="text-[10px] font-bold tracking-wider text-text-secondary uppercase">
-              WillowWallet v2
-            </span>
+        {/* Lazy DB loading spinner overlay */}
+        {dbLoading && (
+          <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md shadow-soft border border-white/70 dark:border-slate-700/50 rounded-full py-1.5 px-3.5 flex items-center gap-2 text-[10px] font-semibold text-text-secondary">
+            <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+            {gt.syncingData}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              Liquid Glass
-            </span>
-          </div>
-        </div>
-
-        {/* Scrollable View Area */}
-        <div className="flex-grow overflow-y-auto px-4 sm:px-6 pt-5 pb-24 sm:pb-28 no-scrollbar relative z-10">
-          
-          {/* Lazy DB loading spinner overlay */}
-          {dbLoading && (
-            <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md shadow-soft border border-white/70 dark:border-slate-700/50 rounded-full py-1.5 px-3 flex items-center gap-2 text-[10px] font-semibold text-text-secondary">
-              <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
-              {gt.syncingData}
-            </div>
-          )}
+        )}
 
           {/* Subpage Router Switch */}
           {activeTab === 'home' && (
@@ -423,7 +405,7 @@ function AppContent() {
             />
           )}
 
-        </div>
+        </main>
 
         {/* Floating Action Button & Bottom Navigation Panel */}
         <BottomNav 
@@ -505,7 +487,6 @@ function AppContent() {
         </AnimatePresence>
 
       </div>
-    </div>
   );
 }
 
