@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/TypeScript_5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
+  <img src="https://img.shields.io/badge/UI-Liquid_Glass_iOS_18-059669?style=for-the-badge" alt="Liquid Glass UI" />
   <img src="https://img.shields.io/badge/PWA-Ready-128E64?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA Ready" />
 </p>
 
@@ -32,7 +32,7 @@
 
 ## 🍃 Overview
 
-**WillowWallet v2** is a fast, elegant, and privacy-first progressive web application (PWA) designed to give individuals complete control over their personal cash flow, budgeting, and financial health. Built from the ground up with modern web technologies, it features an intuitive single-entry cash-basis tracker, intelligent analytics, and real-time cloud synchronization without unnecessary bloat.
+**WillowWallet v2** is a fast, elegant, and privacy-first progressive web application (PWA) designed to give individuals complete control over their personal cash flow, budgeting, and financial health. Redesigned with a modern **Liquid Glass (iOS 18 & visionOS-inspired)** aesthetic, it combines frosted glassmorphism, a floating island dock, and ambient lighting with an intuitive single-entry cash-basis tracker, intelligent analytics, and real-time cloud synchronization without unnecessary bloat.
 
 Whether you run it in **100% Offline Sandbox Mode** using local browser storage or connect it to your personal **Firebase Realtime Database**, WillowWallet ensures your financial records remain private, accessible, and easily exportable at any time.
 
@@ -40,7 +40,14 @@ Whether you run it in **100% Offline Sandbox Mode** using local browser storage 
 
 ## ✨ Key Features
 
-### 📊 1. Intelligent Analytics & Accounting Insights
+### 💎 1. Liquid Glass Design System (iOS 18 Inspired)
+- **Native Full-Screen Architecture**: Clean, unconstrained layout that utilizes the entire display viewport without artificial device borders or visual clutter.
+- **Floating Island Dock Navigation**: Dynamic frosted glass dock positioned ergonomically at the bottom with fluid pill highlights and an integrated glowing action button.
+- **Specular Glassmorphism**: Frosted glass surfaces with inner specular highlights and hardware-accelerated backdrop refraction.
+- **Fluid Ambient Lighting**: Subtle dynamic background mesh orbs that project natural light through translucent cards.
+- **High-Performance Faux-Glass**: Lightweight semi-transparent rendering on high-volume transaction lists, ensuring smooth 60–120 FPS scrolling on mobile devices without GPU thrashing.
+
+### 📊 2. Intelligent Analytics & Accounting Insights
 - **Historical Period Filter**: Freely navigate through any past month/year or jump directly to the current month to review historical performance.
 - **Cash Flow Visualizer**: Interactive 6-month rolling trend bar chart for Income vs. Expense comparisons.
 - **Interactive Expense Breakdown**: Donut chart with real-time hover and touch-tap nominal revealing (view exact Rupiah amounts alongside percentages).
@@ -48,26 +55,26 @@ Whether you run it in **100% Offline Sandbox Mode** using local browser storage 
 - **Saving Rate & Daily Averages**: Dynamically calculated based on actual elapsed days for the active period.
 - **Automated AI Insights**: Contextual, rule-based financial advice tailored to your spending habits.
 
-### 🎯 2. Category-Based Budget Management
+### 🎯 3. Category-Based Budget Management
 - **Expense Ceilings**: Set monthly expenditure limits on specific categories.
 - **Visual Progress & Alerts**: Color-coded progress meters indicating *Safe* (green), *Caution* (amber at 80%), and *Blown* (red over budget) statuses.
 - **Historical Budget Evaluation**: Check budget performance against historical months.
 
-### 💳 3. Bookkeeping & Journaling
+### 💳 4. Bookkeeping & Journaling
 - **Streamlined Transaction Entry**: Record Date, Type (*Income* or *Expense*), Category, Nominal Amount, and Notes in seconds.
 - **Advanced Realtime Search & Filtering**: Filter records by timeframe (Today, Week, Month, Year, All) and type, or search by text description.
 - **Audit Trail**: Every record contains immutable timestamps (`createdAt`, `updatedAt`) for tracking edits.
 
-### 🌐 4. Dual-Engine Architecture
+### 🌐 5. Dual-Engine Architecture
 - **Offline Sandbox Mode**: Zero configuration required. New users can immediately test and track finances with zero cloud dependency.
 - **Firebase Live Cloud Sync**: Connect your own Firebase Realtime Database and Authentication with a single JSON config paste.
 
-### 📁 5. Data Sovereignty & Portability
+### 📁 6. Data Sovereignty & Portability
 - **Spreadsheet CSV Export**: Download complete transaction ledgers formatted for Microsoft Excel and Google Sheets.
 - **Full Database JSON Backup**: Export comprehensive JSON snapshots containing transactions, budgets, and user settings.
 - **Custom Categories**: View, add, and organize personalized spending categories directly from the Profile tab.
 
-### 📱 6. Premium Mobile & PWA Experience
+### 📱 7. Premium Mobile & PWA Experience
 - **Installable Native Feel**: Add to Home Screen on iOS, Android, macOS, and Windows with standalone desktop/mobile shell support.
 - **Offline-Ready Service Worker**: Automatically caches assets for seamless access even without internet connectivity.
 - **Multi-Language Support**: Seamlessly toggle between 🇮🇩 **Bahasa Indonesia** and 🇬🇧 **English**.
