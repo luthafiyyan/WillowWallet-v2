@@ -378,14 +378,14 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
         {/* Right Column: High Fidelity Login Cards and Action Panel */}
         <div className="w-full md:w-1/2 max-w-md flex flex-col justify-center space-y-6">
           
-          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-[32px] p-6.5 sm:p-8 border border-[#E8EDF4] dark:border-slate-700/60 shadow-medium flex flex-col gap-5">
+          <div className="liquid-glass-modal rounded-[32px] p-6.5 sm:p-8 flex flex-col gap-5">
             
             {/* Google Authentication Trigger Card */}
             <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={handleGoogleLogin}
-              className="w-full bg-white dark:bg-slate-900 border border-[#E8EDF4] dark:border-slate-700 hover:border-[#10B981]/50 dark:hover:border-emerald-500/50 p-5 rounded-2xl flex items-center justify-between shadow-soft transition-all duration-200 cursor-pointer"
+              className="w-full liquid-glass-card liquid-glass-card-interactive p-5 rounded-2xl flex items-center justify-between transition-all duration-200 cursor-pointer"
             >
               <div className="flex items-center gap-4">
                 {/* Colored Google G Icon using custom HTML vectors */}

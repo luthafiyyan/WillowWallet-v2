@@ -451,12 +451,12 @@ export const Analytics: React.FC<AnalyticsProps> = ({
     <div className="space-y-6 pb-28 animate-fade-in">
       
       {/* Upper Segmented Controller */}
-      <div className="bg-surface dark:bg-slate-800 p-1.5 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex">
+      <div className="liquid-glass-card p-1.5 rounded-2xl flex gap-1.5">
         <button
           onClick={() => setActiveSubTab('trends')}
-          className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 sm:py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeSubTab === 'trends'
-              ? 'bg-primary text-white shadow-soft'
+              ? 'liquid-pill-active'
               : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
           }`}
         >
@@ -465,9 +465,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         </button>
         <button
           onClick={() => setActiveSubTab('budgets')}
-          className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 sm:py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeSubTab === 'budgets'
-              ? 'bg-primary text-white shadow-soft'
+              ? 'liquid-pill-active'
               : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
           }`}
         >
@@ -477,14 +477,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({
       </div>
 
       {/* Month Filter Selector Bar */}
-      <div className="bg-surface dark:bg-slate-800 p-2 sm:p-2.5 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between gap-2">
+      <div className="liquid-glass-card p-2 sm:p-2.5 rounded-2xl flex items-center justify-between gap-2">
         {/* Prev Month Button */}
         <button
           type="button"
           onClick={handlePrevMonth}
           aria-label={t.prevMonthBtn}
           title={t.prevMonthBtn}
-          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-600 transition-all flex items-center gap-1 cursor-pointer"
+          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-600 transition-all flex items-center gap-1 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           <span className="hidden sm:inline text-xs font-semibold">{t.prevMonthBtn}</span>
@@ -493,15 +493,15 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         {/* Center: Month Display & Quick Dropdown Picker */}
         <div className="flex items-center gap-2">
           <div className="relative flex items-center">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-bg dark:bg-slate-900/40 border border-border-custom dark:border-slate-700/60 hover:border-primary/50 transition-colors">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/80 border border-black/5 dark:border-white/10 hover:border-primary/50 transition-colors">
               <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
               <span className="text-xs sm:text-sm font-bold text-text-primary dark:text-slate-100">
                 {formatMonthLabel(selectedMonth)}
               </span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 isCurrentMonth 
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25' 
+                  : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25'
               }`}>
                 {isCurrentMonth ? t.currentMonthLabel : t.historicalLabel}
               </span>
@@ -528,7 +528,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               type="button"
               onClick={handleResetMonth}
               title={t.resetToCurrentMonth}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-primary/10 text-primary dark:text-emerald-400 hover:bg-primary/20 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border border-primary/20"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden md:inline">{t.resetToCurrentMonth}</span>
@@ -542,7 +542,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
           onClick={handleNextMonth}
           aria-label={t.nextMonthBtn}
           title={t.nextMonthBtn}
-          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-600 transition-all flex items-center gap-1 cursor-pointer"
+          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-600 transition-all flex items-center gap-1 cursor-pointer"
         >
           <span className="hidden sm:inline text-xs font-semibold">{t.nextMonthBtn}</span>
           <ChevronRight className="w-4 h-4" />
@@ -557,7 +557,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             {/* Saving Rate Card */}
-            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
+            <div className="liquid-glass-card p-4.5 rounded-[22px] flex items-center justify-between">
               <div className="space-y-1.5 flex-1">
                 <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">
                   {t.savingRate}
@@ -565,20 +565,20 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 <h4 className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                   {stats.savingRate}%
                 </h4>
-                <div className="w-24 h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className="w-24 h-1.5 bg-slate-200/80 dark:bg-slate-700/70 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                   <div 
                     className="h-full bg-emerald-500 rounded-full transition-all duration-300" 
                     style={{ width: `${stats.savingRate}%` }} 
                   />
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 ml-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 ml-3">
                 <TrendingUp className="w-5.5 h-5.5 stroke-[2.2]" />
               </div>
             </div>
 
             {/* This Month Expense Card */}
-            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
+            <div className="liquid-glass-card p-4.5 rounded-[22px] flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">
                   {isCurrentMonth ? (lang === 'ID' ? 'PENGELUARAN BULAN INI' : 'MONTH EXPENSES') : t.monthExpensesTitle}
@@ -590,13 +590,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                   {isCurrentMonth ? (lang === 'ID' ? 'Total bulan ini' : 'Total this month') : formatMonthLabel(selectedMonth)}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0 ml-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center flex-shrink-0 ml-3">
                 <TrendingDown className="w-5.5 h-5.5 stroke-[2.2]" />
               </div>
             </div>
 
             {/* Average Daily Spending */}
-            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[22px] border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between">
+            <div className="liquid-glass-card p-4.5 rounded-[22px] flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 tracking-wider uppercase">
                   {t.avgDaily}
@@ -608,7 +608,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                   {isCurrentMonth ? t.avgDailySubtitle : (lang === 'ID' ? `Rerata per hari (${daysInSelectedMonth} hari)` : `Daily avg (${daysInSelectedMonth} days)`)}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center flex-shrink-0 ml-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center flex-shrink-0 ml-3">
                 <Calendar className="w-5.5 h-5.5 stroke-[2.2]" />
               </div>
             </div>
@@ -619,7 +619,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Financial Health Scorecard Card */}
-            <div className="bg-surface dark:bg-slate-800 p-5 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col justify-between space-y-4">
+            <div className="liquid-glass-card p-5 rounded-[24px] flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className={`w-5 h-5 ${financialHealth.colorClass}`} />
@@ -627,7 +627,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     {lang === 'ID' ? 'Kesehatan Finansial' : 'Financial Health'}
                   </h4>
                 </div>
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${financialHealth.bgClass} ${financialHealth.colorClass}`}>
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border border-black/5 dark:border-white/10 ${financialHealth.bgClass} ${financialHealth.colorClass}`}>
                   Score: {financialHealth.score}/100
                 </span>
               </div>
@@ -641,14 +641,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 </p>
               </div>
 
-              <div className="w-full h-2 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-slate-200/80 dark:bg-slate-700/70 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                 <div 
                   className={`h-full rounded-full transition-all duration-500 ${
                     financialHealth.score >= 80 
-                      ? 'bg-emerald-500' 
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400' 
                       : financialHealth.score >= 50 
-                        ? 'bg-amber-500' 
-                        : 'bg-rose-500'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-400' 
+                        : 'bg-gradient-to-r from-rose-500 to-red-600'
                   }`}
                   style={{ width: `${financialHealth.score}%` }}
                 />
@@ -656,7 +656,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             </div>
 
             {/* Needs vs Wants allocation (50/30/20 Rule) */}
-            <div className="bg-surface dark:bg-slate-800 p-5 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col justify-between space-y-3">
+            <div className="liquid-glass-card p-5 rounded-[24px] flex flex-col justify-between space-y-3">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-5 h-5 text-primary" />
                 <h4 className="text-xs font-bold text-text-primary dark:text-slate-100 uppercase tracking-wider">
@@ -673,9 +673,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     </span>
                     <span className="text-blue-500">{ratioAllocation.needsPercent}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-200/80 dark:bg-slate-700/70 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                     <div 
-                      className="h-full bg-blue-500" 
+                      className="h-full bg-blue-500 rounded-full" 
                       style={{ width: `${ratioAllocation.needsPercent}%` }} 
                     />
                   </div>
@@ -689,9 +689,9 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     </span>
                     <span className="text-amber-500">{ratioAllocation.wantsPercent}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-slate-200/80 dark:bg-slate-700/70 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                     <div 
-                      className="h-full bg-amber-500" 
+                      className="h-full bg-amber-500 rounded-full" 
                       style={{ width: `${ratioAllocation.wantsPercent}%` }} 
                     />
                   </div>
@@ -714,7 +714,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             <div className="lg:col-span-7 space-y-6">
               
               {/* Income vs Expense Graph Card */}
-              <div className="bg-surface dark:bg-slate-800 p-5 rounded-[28px] border border-border-custom dark:border-slate-700/60 shadow-soft space-y-4">
+              <div className="liquid-glass-card p-5 sm:p-6 rounded-[28px] space-y-4">
                 <div>
                   <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
                     {t.cashflowTitle}
@@ -736,10 +736,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                         <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
                         <Tooltip 
                           formatter={(value: any) => [formatRupiah(Number(value)), '']}
-                          contentStyle={{ background: '#1E293B', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '11px' }}
+                          contentStyle={{ background: '#0F172A', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}
                         />
-                        <Bar dataKey={lang === 'ID' ? 'Pemasukan' : 'Income'} fill="#1B8A5A" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey={lang === 'ID' ? 'Pengeluaran' : 'Expense'} fill="#EF4444" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey={lang === 'ID' ? 'Pemasukan' : 'Income'} fill="#1B8A5A" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey={lang === 'ID' ? 'Pengeluaran' : 'Expense'} fill="#EF4444" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -747,7 +747,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               </div>
 
               {/* Category Breakdown (Pie-Chart & List) */}
-              <div className="bg-surface dark:bg-slate-800 p-5 rounded-[28px] border border-border-custom dark:border-slate-700/60 shadow-soft space-y-4">
+              <div className="liquid-glass-card p-5 sm:p-6 rounded-[28px] space-y-4">
                 <div>
                   <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
                     {t.proportionTitle}
@@ -772,13 +772,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                             <Tooltip
                               formatter={(value: any, name: any) => [formatRupiah(Number(value)), getLocalizedCategoryName(String(name))]}
                               contentStyle={{
-                                background: '#1E293B',
+                                background: '#0F172A',
                                 borderRadius: '12px',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                border: '1px solid rgba(255,255,255,0.12)',
                                 color: '#fff',
                                 fontSize: '11px',
-                                padding: '4px 8px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                padding: '6px 10px',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.4)'
                               }}
                               itemStyle={{ color: '#fff', fontWeight: 600 }}
                             />
@@ -816,7 +816,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                       {/* Progress rows of categories */}
                       <div className="col-span-3 space-y-2 max-h-40 overflow-y-auto no-scrollbar pr-1">
                         {categoryChartData.slice(0, 4).map((item) => {
-                          const style = getCategoryStyle(item.name);
                           const totalVal = categoryChartData.reduce((acc, curr) => acc + curr.value, 0);
                           const percent = totalVal > 0 ? Math.round((item.value / totalVal) * 100) : 0;
                           const isSelected = activeCategory === item.name;
@@ -829,8 +828,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                               onMouseLeave={() => setActiveCategory(null)}
                               className={`group space-y-1 p-1.5 -mx-1.5 rounded-xl transition-all duration-200 cursor-pointer ${
                                 isSelected 
-                                  ? 'bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/30' 
-                                  : 'hover:bg-brand-bg/70 dark:hover:bg-slate-700/40'
+                                  ? 'bg-primary/15 dark:bg-primary/25 ring-1 ring-primary/40' 
+                                  : 'hover:bg-slate-200/50 dark:hover:bg-slate-700/40'
                               }`}
                               title={`${getLocalizedCategoryName(item.name)}: ${formatRupiah(item.value)} (${percent}%)`}
                             >
@@ -859,7 +858,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                                 </div>
                               </div>
 
-                              <div className="w-full h-1 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div className="w-full h-1 bg-slate-200/80 dark:bg-slate-700/70 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                                 <div 
                                   className={`h-full rounded-full transition-all duration-300 ${isSelected ? 'brightness-110 h-1.5' : ''}`} 
                                   style={{ width: `${percent}%`, backgroundColor: item.color }} 
@@ -887,10 +886,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             <div className="lg:col-span-5 space-y-6">
               
               {/* AI Automated Smart Insights */}
-              <div className="bg-emerald-950/5 dark:bg-emerald-500/5 p-5 rounded-[28px] border border-primary/20 shadow-soft space-y-3">
+              <div className="liquid-glass-card p-5 rounded-[28px] border border-primary/25 space-y-3">
                 <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  <h4 className="text-sm font-bold text-primary dark:text-secondary">
+                  <Sparkles className="w-5 h-5 text-primary dark:text-emerald-400" />
+                  <h4 className="text-sm font-bold text-primary dark:text-emerald-400">
                     {t.smartInsights}
                   </h4>
                 </div>
@@ -898,7 +897,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 <div className="space-y-2">
                   {automatedInsights.map((insight, i) => (
                     <div key={i} className="flex gap-2.5 items-start text-xs leading-relaxed text-text-primary dark:text-slate-200 font-medium">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary dark:bg-emerald-400 mt-1.5 flex-shrink-0" />
                       <span>{insight}</span>
                     </div>
                   ))}
@@ -930,7 +929,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               
               <button
                 onClick={() => setShowAddBudget(!showAddBudget)}
-                className="lg:hidden px-4 py-2 bg-primary hover:bg-secondary text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                className="lg:hidden px-4 py-2 liquid-pill-active rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 {showAddBudget ? t.closeBtn : t.setLimitBtn}
@@ -939,7 +938,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
             {/* Budget List Grid */}
             {activeBudgets.length === 0 ? (
-              <div className="bg-surface dark:bg-slate-800 p-10 rounded-[28px] border border-dashed border-border-custom dark:border-slate-700 text-center flex flex-col items-center gap-2">
+              <div className="liquid-glass-card p-10 rounded-[28px] border border-dashed border-slate-300 dark:border-slate-700/80 text-center flex flex-col items-center gap-2">
                 <Scale className="w-10 h-10 text-text-secondary/60 mb-1" />
                 <p className="text-xs text-text-secondary dark:text-slate-400 font-medium">
                   {t.noBudgetTitle}
@@ -958,11 +957,11 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                   return (
                     <div 
                       key={b.id}
-                      className="bg-surface dark:bg-slate-800 p-4 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft relative overflow-hidden"
+                      className="liquid-glass-card p-4 rounded-2xl relative overflow-hidden"
                     >
                       <div className="flex justify-between items-start mb-2.5">
                         <div className="flex items-center gap-2">
-                          <div className={`w-8.5 h-8.5 rounded-lg ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0`}>
+                          <div className={`w-8.5 h-8.5 rounded-lg ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0 shadow-xs border border-white/40 dark:border-white/5`}>
                             <style.icon className="w-5 h-5 stroke-[2.2]" />
                           </div>
                           <div>
@@ -978,7 +977,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                         {/* Delete limit button */}
                         <button
                           onClick={() => onDeleteBudget(b.id)}
-                          className="p-1.5 rounded-lg bg-brand-bg dark:bg-slate-700 hover:bg-rose-500/10 text-text-secondary hover:text-rose-500 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-slate-100/80 dark:bg-slate-700/60 hover:bg-rose-500/10 text-text-secondary hover:text-rose-500 transition-all cursor-pointer border border-black/5 dark:border-white/5"
                           title={lang === 'ID' ? 'Hapus Anggaran' : 'Delete Budget'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -987,14 +986,14 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
                       {/* Progress tracking information */}
                       <div className="space-y-1">
-                        <div className="w-full h-2 bg-brand-bg dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-slate-200/80 dark:bg-slate-700/70 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                           <div 
                             className={`h-full rounded-full transition-all duration-300 ${
                               isOver 
-                                ? 'bg-rose-500' 
+                                ? 'bg-gradient-to-r from-rose-500 to-red-600' 
                                 : isNear 
-                                  ? 'bg-amber-500' 
-                                  : 'bg-primary'
+                                  ? 'bg-gradient-to-r from-amber-500 to-orange-400' 
+                                  : 'bg-gradient-to-r from-emerald-500 to-teal-500'
                             }`}
                             style={{ width: `${b.percentage}%` }}
                           />
@@ -1008,12 +1007,12 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                           </span>
                           
                           {isOver ? (
-                            <span className="text-rose-500 flex items-center gap-1 uppercase">
+                            <span className="text-rose-500 flex items-center gap-1 uppercase font-bold">
                               <AlertTriangle className="w-3 h-3" />
                               {lang === 'ID' ? 'Over' : 'Over'} Rp {formatRupiah(b.spent - b.limit)}!
                             </span>
                           ) : (
-                            <span className="text-emerald-600 dark:text-emerald-400 uppercase">
+                            <span className="text-emerald-600 dark:text-emerald-400 uppercase font-bold">
                               {lang === 'ID' ? 'Sisa' : 'Remaining'} Rp {formatRupiah(b.remaining)}
                             </span>
                           )}
@@ -1029,7 +1028,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
           {/* Right Column: Always Visible budget configuration form on desktop, or collapsible on mobile (Takes 5/12 cols) */}
           <div className={`lg:col-span-5 space-y-4 ${showAddBudget ? 'block' : 'hidden lg:block'}`}>
-            <form onSubmit={handleSetBudgetSubmit} className="bg-surface dark:bg-slate-800 p-5 rounded-2xl border border-primary/20 shadow-soft space-y-4 animate-slide-up">
+            <form onSubmit={handleSetBudgetSubmit} className="liquid-glass-card p-5 rounded-2xl border border-primary/25 space-y-4 animate-slide-up">
               <h5 className="text-xs font-bold text-text-primary dark:text-slate-100 uppercase tracking-wider">
                 {t.setBudgetFormTitle}
               </h5>
@@ -1042,7 +1041,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                   <select
                     value={budgetCategory}
                     onChange={(e) => setBudgetCategory(e.target.value)}
-                    className="w-full bg-brand-bg dark:bg-slate-900/40 px-3 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-transparent focus:border-primary text-text-primary dark:text-slate-100 appearance-none cursor-pointer"
+                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 px-3 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-black/5 dark:border-white/10 focus:border-primary text-text-primary dark:text-slate-100 appearance-none cursor-pointer"
                     style={{
                       backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
                       backgroundRepeat: 'no-repeat',
@@ -1066,7 +1065,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                     placeholder={t.exampleLimit}
                     value={budgetLimit}
                     onChange={(e) => setBudgetLimit(e.target.value)}
-                    className="w-full bg-brand-bg dark:bg-slate-900/40 px-3 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-transparent focus:border-primary text-text-primary dark:text-slate-100"
+                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 px-3 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-black/5 dark:border-white/10 focus:border-primary text-text-primary dark:text-slate-100"
                   />
                 </div>
               </div>
@@ -1074,7 +1073,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
               <button
                 type="submit"
                 disabled={!budgetLimit}
-                className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full liquid-pill-active py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
               >
                 {t.saveBudgetBtn}
               </button>

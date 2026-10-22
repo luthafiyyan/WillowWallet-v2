@@ -105,7 +105,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-center items-end"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-end"
           />
 
           {/* Bottom Sheet Container */}
@@ -114,35 +114,35 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-surface dark:bg-slate-800 rounded-t-[32px] shadow-medium max-w-md mx-auto overflow-hidden flex flex-col max-h-[92vh] pb-safe"
+            className="fixed bottom-0 left-0 right-0 z-50 liquid-glass-modal rounded-t-[36px] max-w-md mx-auto overflow-hidden flex flex-col max-h-[92vh] pb-safe"
           >
             {/* Header notch */}
-            <div className="w-12 h-1.5 bg-border-custom dark:bg-slate-700 rounded-full mx-auto mt-4 mb-2 flex-shrink-0" />
+            <div className="w-12 h-1.5 bg-black/15 dark:bg-white/20 rounded-full mx-auto mt-4 mb-2 flex-shrink-0" />
 
             {/* Header title */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-border-custom dark:border-slate-700 flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-black/5 dark:border-white/10 flex-shrink-0">
               <h3 className="text-lg font-bold text-text-primary dark:text-slate-100">
                 {editingTransaction ? t.editTitle : t.addTitle}
               </h3>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100"
+                className="p-1.5 rounded-full bg-slate-100/80 dark:bg-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Form Scrollable Section */}
-            <form onSubmit={handleSave} className="flex-grow overflow-y-auto px-6 py-4 space-y-6">
+            <form onSubmit={handleSave} className="flex-grow overflow-y-auto px-6 py-4 space-y-5">
               
               {/* Type Toggle Segmented Control */}
-              <div className="bg-brand-bg dark:bg-slate-900/60 p-1 rounded-2xl flex gap-1">
+              <div className="bg-slate-100/80 dark:bg-slate-900/60 p-1 rounded-2xl flex gap-1 border border-black/5 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setType('expense')}
-                  className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all ${
+                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
                     type === 'expense'
-                      ? 'bg-rose-500 text-white shadow-soft'
+                      ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25'
                       : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                   }`}
                 >
@@ -151,9 +151,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 <button
                   type="button"
                   onClick={() => setType('income')}
-                  className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all ${
+                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
                     type === 'income'
-                      ? 'bg-emerald-600 text-white shadow-soft'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/25'
                       : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                   }`}
                 >
@@ -177,7 +177,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     placeholder="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-brand-bg dark:bg-slate-900/40 pl-12 pr-4 py-4 rounded-2xl text-xl font-bold border border-transparent focus:border-primary focus:bg-surface dark:focus:bg-slate-800 focus:outline-none transition-all text-text-primary dark:text-slate-100"
+                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-4 rounded-2xl text-xl font-bold border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100"
                   />
                 </div>
                 <p className="text-xs text-text-secondary italic pl-1">
@@ -193,7 +193,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-brand-bg dark:bg-slate-900/40 px-4 py-3.5 rounded-2xl text-sm font-medium border border-transparent focus:border-primary focus:bg-surface dark:focus:bg-slate-800 focus:outline-none transition-all text-text-primary dark:text-slate-100 appearance-none"
+                  className="w-full bg-slate-100/70 dark:bg-slate-800/80 px-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 appearance-none cursor-pointer"
                   style={{
                     backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
                     backgroundRepeat: 'no-repeat',
@@ -229,7 +229,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-brand-bg dark:bg-slate-900/40 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-transparent focus:border-primary focus:bg-surface dark:focus:bg-slate-800 focus:outline-none transition-all text-text-primary dark:text-slate-100"
+                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 cursor-pointer"
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     placeholder={t.descPlaceholder}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-brand-bg dark:bg-slate-900/40 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-transparent focus:border-primary focus:bg-surface dark:focus:bg-slate-800 focus:outline-none transition-all text-text-primary dark:text-slate-100 min-h-[80px]"
+                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 min-h-[80px]"
                   />
                 </div>
               </div>
@@ -254,7 +254,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               <button
                 type="submit"
                 disabled={!amount || parseFloat(amount) <= 0}
-                className="w-full bg-primary hover:bg-secondary text-white py-4 rounded-2xl text-base font-semibold shadow-medium hover:shadow-lg hover:-translate-y-0.5 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2"
+                className="w-full liquid-pill-active py-4 rounded-2xl text-base font-bold shadow-lg shadow-emerald-600/25 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Check className="w-5 h-5" />
                 {editingTransaction ? (lang === 'ID' ? 'Simpan Perubahan' : 'Save Changes') : t.saveBtn}

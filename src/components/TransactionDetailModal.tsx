@@ -99,7 +99,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           />
 
           {/* Modal Container */}
@@ -109,13 +109,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 15 }}
               transition={{ type: 'spring', damping: 26, stiffness: 340 }}
-              className="bg-surface dark:bg-slate-800 rounded-[32px] w-full max-w-md overflow-hidden shadow-medium border border-border-custom dark:border-slate-700/80 pointer-events-auto flex flex-col"
+              className="liquid-glass-modal rounded-[32px] w-full max-w-md overflow-hidden pointer-events-auto flex flex-col"
             >
               
               {/* Modal Header Bar */}
-              <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-border-custom dark:border-slate-700/55">
+              <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-black/5 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
-                  <div className={`p-2 rounded-xl ${isIncome ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-500'} flex items-center justify-center`}>
+                  <div className={`p-2 rounded-xl ${isIncome ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-500 border border-rose-500/20'} flex items-center justify-center`}>
                     {isIncome ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
                   </div>
                   <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">
@@ -124,21 +124,21 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 </div>
                 <button 
                   onClick={onClose}
-                  className="p-1.5 rounded-full hover:bg-brand-bg dark:hover:bg-slate-700 text-text-secondary hover:text-text-primary transition-all cursor-pointer"
+                  className="p-1.5 rounded-full hover:bg-slate-100/80 dark:hover:bg-slate-700/60 text-text-secondary hover:text-text-primary transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Modal Content */}
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-5">
                 
                 {/* Big Amount Typography */}
-                <div className="text-center py-4 bg-brand-bg dark:bg-slate-900/40 rounded-2xl border border-border-custom dark:border-slate-700/40">
+                <div className="text-center py-4 bg-slate-100/70 dark:bg-slate-800/80 rounded-2xl border border-black/5 dark:border-white/10">
                   <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block mb-1">
                     {t.txAmount}
                   </span>
-                  <h3 className={`text-2xl font-bold tracking-tight ${isIncome ? 'text-[#16A34A]' : 'text-[#EF4444]'}`}>
+                  <h3 className={`text-2xl font-bold tracking-tight ${isIncome ? 'text-[#16A34A] dark:text-emerald-400' : 'text-[#EF4444] dark:text-rose-400'}`}>
                     {isIncome ? '+' : '-'} {formatRupiah(transaction.amount)}
                   </h3>
                 </div>
@@ -232,7 +232,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     onClose();
                     onEdit(transaction);
                   }}
-                  className="flex-1 py-3 text-xs font-bold rounded-2xl bg-[#1B8A5A]/10 text-[#1B8A5A] hover:bg-[#1B8A5A]/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-3 text-xs font-bold rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Edit3 className="w-4 h-4" />
                   {t.editBtn}
@@ -243,7 +243,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     onClose();
                     onDelete(transaction.id);
                   }}
-                  className="flex-1 py-3 text-xs font-bold rounded-2xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-3 text-xs font-bold rounded-2xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                   {t.deleteBtn}

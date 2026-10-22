@@ -165,7 +165,8 @@ export const Home: React.FC<HomeProps> = ({
         </div>
         <button 
           onClick={() => onNavigateTab('profile')}
-          className="w-10 h-10 rounded-full overflow-hidden border border-[#E8EDF4] dark:border-slate-700/85 hover:scale-105 transition-transform p-0.5"
+          className="w-10 h-10 rounded-full overflow-hidden border border-white/60 dark:border-white/15 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md shadow-xs hover:scale-105 transition-transform p-0.5"
+          title={lang === 'ID' ? 'Buka Profil' : 'Open Profile'}
         >
           <img 
             src={user.photoURL || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.displayName}`} 
@@ -181,10 +182,13 @@ export const Home: React.FC<HomeProps> = ({
         
         {/* Left Column: Balance Card & Recent Transactions (Takes 7/12 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Modern Active Balance Card - Clean Minimalism */}
-          <div className="bg-[#1B8A5A] p-7 rounded-[32px] text-white shadow-xl shadow-[#1B8A5A]/20 flex justify-between items-end relative overflow-hidden transition-all duration-300">
-            {/* Subtle geometric circle shape pattern from the design */}
-            <div className="absolute top-0 right-0 p-6 opacity-10">
+          {/* Liquid Glass Emerald Hero Card */}
+          <div className="liquid-glass-emerald p-7 rounded-[32px] text-white flex justify-between items-end relative overflow-hidden transition-all duration-300">
+            {/* Ambient internal glows and subtle specular pattern */}
+            <div className="absolute -top-16 -right-16 w-52 h-52 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-44 h-44 rounded-full bg-black/10 blur-xl pointer-events-none" />
+            
+            <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
               <svg className="w-32 h-32 text-white" viewBox="0 0 200 200" fill="currentColor">
                 <circle cx="100" cy="100" r="80"/>
               </svg>
@@ -192,24 +196,24 @@ export const Home: React.FC<HomeProps> = ({
             
             <div className="relative z-10">
               <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">{t.activeBalance}</p>
-              <h2 className="text-3xl font-bold tracking-tight">{formatRupiah(activeBalance)}</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-xs">{formatRupiah(activeBalance)}</h2>
               <div className="mt-5 flex gap-2.5">
-                <span className="px-2.5 py-1 bg-white/20 rounded-full text-[10px] font-medium">
+                <span className="px-3 py-1 bg-white/20 hover:bg-white/25 border border-white/30 backdrop-blur-md rounded-full text-[10px] font-semibold transition-all">
                   {activeBalance >= 0 ? t.surplus : t.deficit}
                 </span>
-                <span className="px-2.5 py-1 bg-white/20 rounded-full text-[10px] font-medium underline cursor-pointer" onClick={() => onNavigateTab('analytics')}>
+                <span className="px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-md rounded-full text-[10px] font-semibold cursor-pointer transition-all" onClick={() => onNavigateTab('analytics')}>
                   {t.viewDetail}
                 </span>
               </div>
             </div>
 
             <div className="relative z-10 text-right">
-              <div className="w-11 h-11 bg-white/20 rounded-2xl backdrop-blur-md flex items-center justify-center mb-8 ml-auto">
+              <div className="w-11 h-11 bg-white/20 rounded-2xl backdrop-blur-md border border-white/30 flex items-center justify-center mb-8 ml-auto shadow-xs">
                 <svg className="w-5.5 h-5.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
               </div>
-              <p className="text-[10px] text-white/70 tracking-widest font-mono">**** {user.uid ? user.uid.substring(user.uid.length - 4).toUpperCase() : '4829'}</p>
+              <p className="text-[10px] text-white/80 tracking-widest font-mono">**** {user.uid ? user.uid.substring(user.uid.length - 4).toUpperCase() : '4829'}</p>
             </div>
           </div>
 
@@ -221,7 +225,7 @@ export const Home: React.FC<HomeProps> = ({
               </h4>
               <button 
                 onClick={() => onNavigateTab('transactions')} 
-                className="text-xs text-[#1B8A5A] font-bold hover:underline flex items-center gap-0.5"
+                className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 {t.viewAll}
                 <ArrowRight className="w-3 h-3" />
@@ -229,8 +233,8 @@ export const Home: React.FC<HomeProps> = ({
             </div>
 
             {recentTransactions.length === 0 ? (
-              <div className="bg-white dark:bg-slate-800 p-8 rounded-[32px] border border-dashed border-[#E8EDF4] dark:border-slate-700 text-center flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-[#F5F7FB] dark:bg-slate-700 flex items-center justify-center text-[#64748B] mb-2">
+              <div className="liquid-glass-card p-8 rounded-[32px] border border-dashed border-slate-300 dark:border-slate-700/80 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-[#64748B] mb-2">
                   <HelpCircle className="w-6 h-6" />
                 </div>
                 <p className="text-xs text-[#64748B] dark:text-slate-400 font-semibold">
@@ -241,7 +245,7 @@ export const Home: React.FC<HomeProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-2.5 sm:gap-3">
                 {recentTransactions.map((tx) => {
                   const style = getCategoryStyle(tx.category);
                   const isIncome = tx.type === 'income';
@@ -250,21 +254,21 @@ export const Home: React.FC<HomeProps> = ({
                     <div 
                       key={tx.id}
                       onClick={() => onViewTransaction(tx)}
-                      className="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm flex items-center justify-between gap-3 sm:gap-4 group hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-750/30 hover:-translate-y-[1px] transition-all duration-200 cursor-pointer"
+                      className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 group cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0`}>
+                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0 shadow-xs border border-white/40 dark:border-white/5`}>
                           <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h5 className="text-xs sm:text-sm font-bold text-[#1E293B] dark:text-slate-100 line-clamp-1">
+                          <h5 className="text-xs sm:text-sm font-bold text-[#0F172A] dark:text-slate-100 line-clamp-1">
                             {tx.description || getLocalizedCategoryName(tx.category)}
                           </h5>
                           <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
                             <span className="text-[10px] font-semibold text-[#64748B] dark:text-slate-400">
                               {getLocalizedCategoryName(tx.category)}
                             </span>
-                            <span className="w-1 h-1 rounded-full bg-[#E8EDF4] dark:bg-slate-700" />
+                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                             <span className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium whitespace-nowrap">
                               {tx.date}
                             </span>
@@ -284,7 +288,7 @@ export const Home: React.FC<HomeProps> = ({
                               e.stopPropagation();
                               onEditTransaction(tx);
                             }}
-                            className="p-1.5 sm:p-2 rounded-xl bg-[#F5F7FB] dark:bg-slate-700 text-[#64748B] hover:text-[#1B8A5A] hover:bg-[#1B8A5A]/10 transition-all cursor-pointer"
+                            className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-[#64748B] hover:text-[#1B8A5A] dark:hover:text-emerald-400 hover:bg-[#1B8A5A]/10 transition-all cursor-pointer"
                             title="Edit"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -294,7 +298,7 @@ export const Home: React.FC<HomeProps> = ({
                               e.stopPropagation();
                               onDeleteTransaction(tx.id);
                             }}
-                            className="p-1.5 sm:p-2 rounded-xl bg-[#F5F7FB] dark:bg-slate-700 text-[#64748B] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-all cursor-pointer"
+                            className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-[#64748B] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-all cursor-pointer"
                             title={lang === 'ID' ? 'Hapus' : 'Delete'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -316,14 +320,14 @@ export const Home: React.FC<HomeProps> = ({
             <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
               {t.quickService}
             </h4>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
               
               {/* Add Transaction */}
               <button 
                 onClick={onOpenAddTransaction}
-                className="bg-white dark:bg-slate-800 p-4 rounded-3xl flex flex-col items-center text-center gap-2 border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm hover:bg-[#F1F5F9] dark:hover:bg-slate-700/50 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#1B8A5A]/10 text-[#1B8A5A] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-[#1B8A5A] dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
                   <Plus className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
@@ -334,9 +338,9 @@ export const Home: React.FC<HomeProps> = ({
               {/* Budget Baru Shortcut */}
               <button 
                 onClick={() => onNavigateTab('analytics')}
-                className="bg-white dark:bg-slate-800 p-4 rounded-3xl flex flex-col items-center text-center gap-2 border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm hover:bg-[#F1F5F9] dark:hover:bg-slate-700/50 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#F59E0B]/10 text-[#F59E0B] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-[#F59E0B] dark:text-amber-400 border border-amber-500/20 flex items-center justify-center">
                   <ChevronRight className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
@@ -347,9 +351,9 @@ export const Home: React.FC<HomeProps> = ({
               {/* Analytics Shortcut */}
               <button 
                 onClick={() => onNavigateTab('analytics')}
-                className="bg-white dark:bg-slate-800 p-4 rounded-3xl flex flex-col items-center text-center gap-2 border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm hover:bg-[#F1F5F9] dark:hover:bg-slate-700/50 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#3AA772]/10 text-[#3AA772] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-teal-500/10 dark:bg-teal-500/20 text-[#3AA772] dark:text-teal-400 border border-teal-500/20 flex items-center justify-center">
                   <PieChart className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
@@ -361,9 +365,9 @@ export const Home: React.FC<HomeProps> = ({
               <button 
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="bg-white dark:bg-slate-800 p-4 rounded-3xl flex flex-col items-center text-center gap-2 border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm hover:bg-[#F1F5F9] dark:hover:bg-slate-700/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-55 disabled:pointer-events-none cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 disabled:opacity-45 disabled:pointer-events-none cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-[#3B82F6] dark:text-blue-400 border border-blue-500/20 flex items-center justify-center">
                   <FileDown className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
@@ -382,14 +386,14 @@ export const Home: React.FC<HomeProps> = ({
               </h4>
               <button 
                 onClick={() => onNavigateTab('analytics')} 
-                className="text-xs text-[#1B8A5A] font-bold hover:underline flex items-center gap-0.5"
+                className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 {t.manage}
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-[32px] border border-[#E8EDF4] dark:border-slate-700/60 shadow-sm space-y-5">
+            <div className="liquid-glass-card p-6 rounded-[32px] space-y-5">
               {activeBudgets.length === 0 ? (
                 <div className="text-center py-4 flex flex-col items-center gap-2">
                   <AlertCircle className="w-8 h-8 text-[#64748B]/60" />
@@ -398,7 +402,7 @@ export const Home: React.FC<HomeProps> = ({
                   </p>
                   <button 
                     onClick={() => onNavigateTab('analytics')}
-                    className="text-xs bg-[#1B8A5A]/10 text-[#1B8A5A] px-4 py-2 rounded-xl font-bold hover:bg-[#1B8A5A]/20 transition-all mt-1"
+                    className="text-xs bg-[#1B8A5A]/10 text-[#1B8A5A] dark:text-emerald-400 px-4 py-2 rounded-xl font-bold hover:bg-[#1B8A5A]/20 transition-all mt-1 cursor-pointer"
                   >
                     {t.setBudgetBtn}
                   </button>
@@ -408,10 +412,10 @@ export const Home: React.FC<HomeProps> = ({
                   {activeBudgets.slice(0, 3).map((b) => {
                     // Determine bar color based on limits
                     const barColorClass = b.percentage >= 100 
-                      ? 'bg-[#EF4444]' 
+                      ? 'bg-gradient-to-r from-rose-500 to-red-600' 
                       : b.percentage >= 75 
-                        ? 'bg-[#F59E0B]' 
-                        : 'bg-[#3AA772]';
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-500';
 
                     return (
                       <div key={b.id} className="space-y-2">
@@ -419,7 +423,7 @@ export const Home: React.FC<HomeProps> = ({
                           <span>{getLocalizedCategoryName(b.category)}</span>
                           <span className="font-bold">{b.percentage}%</span>
                         </div>
-                        <div className="w-full h-3 bg-[#F1F5F9] dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="w-full h-3 bg-slate-200/70 dark:bg-slate-700/60 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ${barColorClass}`}
                             style={{ width: `${b.percentage}%` }}
@@ -435,7 +439,7 @@ export const Home: React.FC<HomeProps> = ({
               )}
 
               {/* Saving Goal Mini Card from the design spec */}
-              <div className="bg-[#F5F7FB] dark:bg-slate-900/40 p-4 rounded-2xl border border-dashed border-[#1B8A5A]/30 flex items-center gap-3">
+              <div className="bg-emerald-500/8 dark:bg-emerald-500/5 p-4 rounded-2xl border border-dashed border-emerald-500/25 flex items-center gap-3">
                 <div className="text-2xl">⛰️</div>
                 <div className="flex-grow">
                   <p className="text-[9px] text-[#64748B] dark:text-slate-400 font-bold uppercase tracking-tight">{t.savingGoalTitle}</p>

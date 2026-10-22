@@ -183,13 +183,13 @@ export const Profile: React.FC<ProfileProps> = ({
         <div className="lg:col-span-5 space-y-5">
           
           {/* Profile Card Summary */}
-          <div className="bg-surface dark:bg-slate-800 p-6 rounded-[28px] border border-border-custom dark:border-slate-700/60 shadow-soft flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-[28px] overflow-hidden border-2 border-primary/20 dark:border-slate-700/80 mb-4 p-0.5">
+          <div className="liquid-glass-card p-6 rounded-[28px] flex flex-col items-center text-center relative overflow-hidden">
+            <div className="w-20 h-20 rounded-[26px] overflow-hidden border-2 border-emerald-500/30 dark:border-emerald-500/20 mb-4 p-0.5 bg-white/50 dark:bg-white/5 shadow-xs">
               <img 
                 src={user.photoURL || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.displayName}`} 
                 alt="User Avatar" 
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover rounded-[24px]" 
+                className="w-full h-full object-cover rounded-[22px]" 
               />
             </div>
 
@@ -204,15 +204,15 @@ export const Profile: React.FC<ProfileProps> = ({
           </div>
 
           {/* Account Activity Stats Card */}
-          <div className="bg-surface dark:bg-slate-800 p-5 rounded-[28px] border border-border-custom dark:border-slate-700/60 shadow-soft space-y-4">
+          <div className="liquid-glass-card p-5 rounded-[28px] space-y-4">
             <h4 className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <Activity className="w-4 h-4 text-primary" />
+              <Activity className="w-4 h-4 text-primary dark:text-emerald-400" />
               {t.accountStats}
             </h4>
 
             <div className="grid grid-cols-2 gap-3">
               {/* Total Transactions */}
-              <div className="bg-brand-bg dark:bg-slate-900/40 p-3.5 rounded-2xl border border-border-custom/50 dark:border-slate-700/40">
+              <div className="bg-slate-100/70 dark:bg-slate-800/80 p-3.5 rounded-2xl border border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-1.5 text-text-secondary text-[10px] font-semibold uppercase">
                   <Receipt className="w-3.5 h-3.5 text-blue-500" />
                   <span>{t.totalTx}</span>
@@ -223,7 +223,7 @@ export const Profile: React.FC<ProfileProps> = ({
               </div>
 
               {/* Active Budgets */}
-              <div className="bg-brand-bg dark:bg-slate-900/40 p-3.5 rounded-2xl border border-border-custom/50 dark:border-slate-700/40">
+              <div className="bg-slate-100/70 dark:bg-slate-800/80 p-3.5 rounded-2xl border border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-1.5 text-text-secondary text-[10px] font-semibold uppercase">
                   <Scale className="w-3.5 h-3.5 text-purple-500" />
                   <span>{t.activeBudgetsCount}</span>
@@ -234,7 +234,7 @@ export const Profile: React.FC<ProfileProps> = ({
               </div>
 
               {/* Total Income */}
-              <div className="bg-brand-bg dark:bg-slate-900/40 p-3.5 rounded-2xl border border-border-custom/50 dark:border-slate-700/40">
+              <div className="bg-slate-100/70 dark:bg-slate-800/80 p-3.5 rounded-2xl border border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-1.5 text-text-secondary text-[10px] font-semibold uppercase">
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
                   <span>{t.allTimeIncome}</span>
@@ -245,7 +245,7 @@ export const Profile: React.FC<ProfileProps> = ({
               </div>
 
               {/* Total Expense */}
-              <div className="bg-brand-bg dark:bg-slate-900/40 p-3.5 rounded-2xl border border-border-custom/50 dark:border-slate-700/40">
+              <div className="bg-slate-100/70 dark:bg-slate-800/80 p-3.5 rounded-2xl border border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-1.5 text-text-secondary text-[10px] font-semibold uppercase">
                   <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
                   <span>{t.allTimeExpense}</span>
@@ -268,7 +268,7 @@ export const Profile: React.FC<ProfileProps> = ({
               {t.appSettings}
             </h4>
 
-            <div className="bg-surface dark:bg-slate-800 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft overflow-hidden divide-y divide-border-custom dark:divide-slate-700/50">
+            <div className="liquid-glass-card rounded-[24px] overflow-hidden divide-y divide-black/5 dark:divide-white/10">
               
               {/* Language Switcher Row */}
               <div className="p-4 flex items-center justify-between">
@@ -287,13 +287,13 @@ export const Profile: React.FC<ProfileProps> = ({
                 </div>
 
                 {/* Segmented language pill buttons */}
-                <div className="flex bg-brand-bg dark:bg-slate-900/60 p-1 rounded-xl gap-1">
+                <div className="flex bg-slate-100/80 dark:bg-slate-900/60 p-1 rounded-xl gap-1 border border-black/5 dark:border-white/5">
                   <button
                     type="button"
                     onClick={() => onSelectLanguage && onSelectLanguage('ID')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       lang === 'ID'
-                        ? 'bg-primary text-white shadow-soft'
+                        ? 'liquid-pill-active'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                     }`}
                   >
@@ -304,7 +304,7 @@ export const Profile: React.FC<ProfileProps> = ({
                     onClick={() => onSelectLanguage && onSelectLanguage('EN')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       lang === 'EN'
-                        ? 'bg-primary text-white shadow-soft'
+                        ? 'liquid-pill-active'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                     }`}
                   >
@@ -355,14 +355,14 @@ export const Profile: React.FC<ProfileProps> = ({
               {t.dataCenterTitle}
             </h4>
 
-            <div className="bg-surface dark:bg-slate-800 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft overflow-hidden divide-y divide-border-custom dark:divide-slate-700/50">
+            <div className="liquid-glass-card rounded-[24px] overflow-hidden divide-y divide-black/5 dark:divide-white/10">
               
               {/* Export CSV Row */}
               <button
                 type="button"
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="w-full p-4 flex items-center justify-between hover:bg-brand-bg dark:hover:bg-slate-700/40 transition-colors cursor-pointer text-left disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer text-left disabled:opacity-50 disabled:pointer-events-none"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
@@ -385,7 +385,7 @@ export const Profile: React.FC<ProfileProps> = ({
                 type="button"
                 onClick={handleFullBackup}
                 disabled={transactions.length === 0}
-                className="w-full p-4 flex items-center justify-between hover:bg-brand-bg dark:hover:bg-slate-700/40 transition-colors cursor-pointer text-left disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer text-left disabled:opacity-50 disabled:pointer-events-none"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center flex-shrink-0">
@@ -408,7 +408,7 @@ export const Profile: React.FC<ProfileProps> = ({
                 <button
                   type="button"
                   onClick={onTriggerInstall}
-                  className="w-full p-4 flex items-center justify-between hover:bg-brand-bg dark:hover:bg-slate-700/40 transition-colors cursor-pointer text-left font-sans"
+                  className="w-full p-4 flex items-center justify-between hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer text-left font-sans"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center flex-shrink-0">
@@ -434,7 +434,7 @@ export const Profile: React.FC<ProfileProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between pl-1">
               <h4 className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-primary" />
+                <Tag className="w-3.5 h-3.5 text-primary dark:text-emerald-400" />
                 {t.categoryTitle}
               </h4>
               <span className="text-[10px] font-semibold text-text-secondary">
@@ -442,7 +442,7 @@ export const Profile: React.FC<ProfileProps> = ({
               </span>
             </div>
 
-            <div className="bg-surface dark:bg-slate-800 p-4.5 rounded-[24px] border border-border-custom dark:border-slate-700/60 shadow-soft space-y-3">
+            <div className="liquid-glass-card p-4.5 rounded-[24px] space-y-3">
               {/* Add Category Form */}
               <form onSubmit={handleAddCategorySubmit} className="flex gap-2">
                 <input
@@ -450,12 +450,12 @@ export const Profile: React.FC<ProfileProps> = ({
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder={t.inputCategoryPlaceholder}
-                  className="flex-1 bg-brand-bg dark:bg-slate-900/40 px-3.5 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-transparent focus:border-primary text-text-primary dark:text-slate-100"
+                  className="flex-1 bg-slate-100/70 dark:bg-slate-800/80 px-3.5 py-2.5 rounded-xl text-xs font-semibold focus:outline-none border border-black/5 dark:border-white/10 focus:border-primary text-text-primary dark:text-slate-100"
                 />
                 <button
                   type="submit"
                   disabled={!newCategoryName.trim()}
-                  className="px-4 py-2.5 bg-primary hover:bg-secondary text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer flex-shrink-0"
+                  className="px-4 py-2.5 liquid-pill-active rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer flex-shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>{t.addCategoryBtn}</span>
@@ -467,7 +467,7 @@ export const Profile: React.FC<ProfileProps> = ({
                 {categories.map((cat) => (
                   <span
                     key={cat}
-                    className="px-2.5 py-1 rounded-lg bg-brand-bg dark:bg-slate-900/50 text-text-secondary dark:text-slate-300 text-[10px] font-bold border border-border-custom/50 dark:border-slate-700/50"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100/70 dark:bg-slate-800/80 text-text-secondary dark:text-slate-300 text-[10px] font-bold border border-black/5 dark:border-white/10"
                   >
                     {cat}
                   </span>
@@ -480,7 +480,7 @@ export const Profile: React.FC<ProfileProps> = ({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full bg-rose-500 hover:bg-rose-600 text-white py-4 rounded-2xl text-xs font-bold shadow-soft hover:shadow-medium hover:-translate-y-0.5 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white py-3.5 rounded-2xl text-xs font-bold shadow-lg shadow-rose-500/25 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
           >
             <LogOut className="w-4.5 h-4.5 stroke-[2.2]" />
             {t.logoutBtn}

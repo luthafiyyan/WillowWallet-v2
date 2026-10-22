@@ -147,12 +147,12 @@ export const Transactions: React.FC<TransactionsProps> = ({
           placeholder={t.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-surface dark:bg-slate-800 border border-border-custom dark:border-slate-700/60 rounded-2xl pl-12 pr-10 py-3.5 text-sm font-medium focus:border-primary focus:bg-surface focus:outline-none shadow-soft transition-all text-text-primary dark:text-slate-100 placeholder:text-slate-400"
+          className="w-full liquid-glass-input rounded-2xl pl-12 pr-10 py-3.5 text-sm font-medium focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 placeholder:text-slate-400"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full bg-brand-bg dark:bg-slate-700 text-text-secondary"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-200/60 dark:bg-slate-700/60 text-text-secondary hover:text-text-primary cursor-pointer transition-all"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -170,12 +170,12 @@ export const Transactions: React.FC<TransactionsProps> = ({
             <h5 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
               {t.timeRange}
             </h5>
-            <div className="grid grid-cols-3 sm:grid-cols-5 lg:flex lg:flex-col gap-1.5 bg-surface dark:bg-slate-800 p-1.5 sm:p-2 rounded-2xl border border-border-custom dark:border-slate-700/60">
+            <div className="grid grid-cols-3 sm:grid-cols-5 lg:flex lg:flex-col gap-1.5 liquid-glass-card p-1.5 sm:p-2 rounded-2xl">
               <button
                 onClick={() => setTimeFilter('all')}
                 className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'all'
-                    ? 'bg-primary text-white shadow-soft'
+                    ? 'liquid-pill-active'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
@@ -185,7 +185,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 onClick={() => setTimeFilter('today')}
                 className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'today'
-                    ? 'bg-primary text-white shadow-soft'
+                    ? 'liquid-pill-active'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
@@ -195,7 +195,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 onClick={() => setTimeFilter('week')}
                 className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'week'
-                    ? 'bg-primary text-white shadow-soft'
+                    ? 'liquid-pill-active'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
@@ -205,7 +205,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 onClick={() => setTimeFilter('month')}
                 className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'month'
-                    ? 'bg-primary text-white shadow-soft'
+                    ? 'liquid-pill-active'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
@@ -215,7 +215,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 onClick={() => setTimeFilter('year')}
                 className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
                   timeFilter === 'year'
-                    ? 'bg-primary text-white shadow-soft'
+                    ? 'liquid-pill-active'
                     : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
@@ -232,20 +232,20 @@ export const Transactions: React.FC<TransactionsProps> = ({
             <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2">
               <button
                 onClick={() => setTypeFilter('all')}
-                className={`w-full py-2 text-[10px] sm:text-xs font-bold border rounded-xl transition-all cursor-pointer ${
+                className={`w-full py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   typeFilter === 'all'
-                    ? 'bg-slate-200 dark:bg-slate-700 text-text-primary dark:text-slate-100 border-transparent'
-                    : 'bg-surface dark:bg-slate-800 border-border-custom dark:border-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
+                    ? 'bg-slate-200/90 dark:bg-slate-700 text-text-primary dark:text-slate-100 shadow-xs'
+                    : 'liquid-glass-card text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
                 {t.allTypes}
               </button>
               <button
                 onClick={() => setTypeFilter('income')}
-                className={`w-full py-2 text-[10px] sm:text-xs font-bold border rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
+                className={`w-full py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                   typeFilter === 'income'
-                    ? 'bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-surface dark:bg-slate-800 border-border-custom dark:border-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                    : 'liquid-glass-card text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -253,10 +253,10 @@ export const Transactions: React.FC<TransactionsProps> = ({
               </button>
               <button
                 onClick={() => setTypeFilter('expense')}
-                className={`w-full py-2 text-[10px] sm:text-xs font-bold border rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
+                className={`w-full py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                   typeFilter === 'expense'
-                    ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                    : 'bg-surface dark:bg-slate-800 border-border-custom dark:border-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
+                    ? 'bg-rose-500/15 text-rose-500 dark:text-rose-400 border border-rose-500/30'
+                    : 'liquid-glass-card text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                 }`}
               >
                 <TrendingDown className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -266,7 +266,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
           </div>
 
           {/* Sums overview of active filters */}
-          <div className="grid grid-cols-2 gap-3 bg-brand-bg dark:bg-slate-900/40 p-4 rounded-2xl border border-border-custom dark:border-slate-700/40">
+          <div className="grid grid-cols-2 gap-3 liquid-glass-card p-4 rounded-2xl">
             <div>
               <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
                 {t.filterIncome}
@@ -275,7 +275,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 +{formatRupiah(filteredIncome)}
               </p>
             </div>
-            <div className="border-l border-border-custom dark:border-slate-700/50 pl-4">
+            <div className="border-l border-black/5 dark:border-white/10 pl-4">
               <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
                 {t.filterExpense}
               </p>
@@ -290,8 +290,8 @@ export const Transactions: React.FC<TransactionsProps> = ({
         {/* Right Side: Results Card list (Takes 8/12 cols on desktop) */}
         <div className="lg:col-span-8 space-y-3">
           {filteredTransactions.length === 0 ? (
-            <div className="bg-surface dark:bg-slate-800 p-12 rounded-[28px] border border-dashed border-border-custom dark:border-slate-700 text-center flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-brand-bg dark:bg-slate-700 flex items-center justify-center text-text-secondary mb-1">
+            <div className="liquid-glass-card p-12 rounded-[28px] border border-dashed border-slate-300 dark:border-slate-700/80 text-center flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-text-secondary mb-1">
                 <SlidersHorizontal className="w-6 h-6 text-text-secondary/60" />
               </div>
               <h4 className="text-sm font-bold text-text-primary dark:text-slate-100">
@@ -302,23 +302,23 @@ export const Transactions: React.FC<TransactionsProps> = ({
               </p>
               <button
                 onClick={clearFilters}
-                className="text-xs bg-primary text-white px-5 py-2.5 rounded-xl font-semibold shadow-soft hover:bg-secondary transition-all cursor-pointer mt-2"
+                className="text-xs liquid-pill-active px-5 py-2.5 rounded-xl font-semibold cursor-pointer mt-2"
               >
                 {t.resetFiltersBtn}
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2.5 sm:gap-3">
               {filteredTransactions.map((tx) => {
                 const style = getCategoryStyle(tx.category);
                 return (
                   <div 
                     key={tx.id}
                     onClick={() => onViewTransaction(tx)}
-                    className="bg-surface dark:bg-slate-800 p-3 sm:p-4 rounded-2xl border border-border-custom dark:border-slate-700/60 shadow-soft flex items-center justify-between gap-3 sm:gap-4 group hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-750/30 hover:-translate-y-[1px] transition-all duration-200 cursor-pointer"
+                    className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 group cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0`}>
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0 shadow-xs border border-white/40 dark:border-white/5`}>
                         <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -329,7 +329,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                           <span className="text-[10px] font-semibold text-text-secondary dark:text-slate-400">
                             {getLocalizedCategoryName(tx.category)}
                           </span>
-                          <span className="w-1 h-1 rounded-full bg-border-custom dark:bg-slate-700" />
+                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                           <span className="text-[10px] text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
                             {tx.date}
                           </span>
@@ -349,7 +349,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                             e.stopPropagation();
                             onEditTransaction(tx);
                           }}
-                          className="p-1.5 sm:p-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
+                          className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
                           title="Edit"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -359,7 +359,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                             e.stopPropagation();
                             onDeleteTransaction(tx.id);
                           }}
-                          className="p-1.5 sm:p-2 rounded-xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                          className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
                           title={lang === 'ID' ? 'Hapus' : 'Delete'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />

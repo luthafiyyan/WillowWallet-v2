@@ -38,7 +38,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           />
 
           {/* Dialog Card */}
@@ -48,10 +48,10 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.92, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="bg-surface dark:bg-slate-800 rounded-3xl p-6 shadow-medium max-w-sm w-full pointer-events-auto border border-border-custom dark:border-slate-700"
+              className="liquid-glass-modal rounded-3xl p-6 max-w-sm w-full pointer-events-auto"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/20 flex items-center justify-center text-rose-500">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-rose-500">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
                 <h4 className="text-lg font-bold text-text-primary dark:text-slate-100">
@@ -66,7 +66,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-brand-bg dark:bg-slate-700 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all active:scale-98"
+                  className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all active:scale-98 cursor-pointer"
                 >
                   {resolvedCancel}
                 </button>
@@ -75,7 +75,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                     onConfirm();
                     onClose();
                   }}
-                  className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-rose-500 hover:bg-rose-600 text-white shadow-soft hover:shadow-md transition-all active:scale-98 flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white shadow-lg shadow-rose-500/25 border border-white/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                   {resolvedConfirm}
