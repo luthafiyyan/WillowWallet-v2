@@ -466,57 +466,6 @@ function AppContent() {
           lang={lang}
         />
 
-        {/* Custom Install Prompt Dialog */}
-        <AnimatePresence>
-          {showInstallPrompt && !localStorage.getItem('WILLOW_INSTALL_DISMISSED') && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-40 bg-surface/95 dark:bg-slate-800/95 backdrop-blur-md p-5 rounded-3xl border border-border-custom dark:border-slate-700/60 shadow-medium flex flex-col gap-4 font-sans pointer-events-auto"
-            >
-              <div className="flex gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-6 h-6 animate-pulse" />
-                </div>
-                <div className="flex-grow">
-                  <h4 className="text-xs font-bold text-text-primary dark:text-slate-100">
-                    {lang === 'ID' ? 'Pasang WillowWallet' : 'Install WillowWallet'}
-                  </h4>
-                  <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-1 leading-normal">
-                    {lang === 'ID' 
-                      ? 'Nikmati pengalaman seperti aplikasi native dengan performa cepat dan akses offline.' 
-                      : 'Enjoy a native-like experience with fast performance and offline access.'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2.5">
-                <button
-                  onClick={() => {
-                    localStorage.setItem('WILLOW_INSTALL_DISMISSED', 'true');
-                    setShowInstallPrompt(false);
-                  }}
-                  className="flex-1 py-2.5 rounded-xl border border-border-custom dark:border-slate-700 text-xs font-semibold text-text-secondary dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer text-center"
-                >
-                  {lang === 'ID' ? 'Nanti' : 'Later'}
-                </button>
-                <button
-                  onClick={async () => {
-                    const accepted = await triggerInstallPrompt();
-                    if (accepted) {
-                      showToast(lang === 'ID' ? 'Terima kasih telah memasang aplikasi!' : 'Thank you for installing the app!', 'success');
-                      setShowInstallPrompt(false);
-                    }
-                  }}
-                  className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-emerald-600 text-xs font-semibold text-white transition-all cursor-pointer text-center shadow-soft"
-                >
-                  {lang === 'ID' ? 'Pasang' : 'Install'}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Custom Update Service Worker Snackbar */}
         <AnimatePresence>
           {swUpdateRegistration && (
