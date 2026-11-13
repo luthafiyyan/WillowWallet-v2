@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Wallet, 
   Database, 
-  Sparkles, 
   AlertCircle, 
   X, 
   Copy, 
@@ -71,6 +70,17 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
   const [configError, setConfigError] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showConfigModal) setShowConfigModal(false);
+        if (showLangDropdown) setShowLangDropdown(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showConfigModal, showLangDropdown]);
 
   const t = TRANSLATIONS[lang];
 
@@ -291,7 +301,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
                   duration: 4,
                   ease: "easeInOut"
                 }}
-                className="relative w-48 h-36 bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] rounded-[32px] shadow-large border-t border-emerald-300/40 p-5 flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="relative w-48 h-36 bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] rounded-[32px] shadow-large border-t border-emerald-300/40 p-5 flex flex-col justify-between overflow-hidden select-none pointer-events-none"
               >
                 {/* Shiny highlight lines across the wallet */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
@@ -331,7 +341,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
                   delay: 0.2,
                   ease: "easeInOut"
                 }}
-                className="absolute -top-10 left-32 w-16 h-16 rounded-full bg-gradient-to-br from-[#FBDF5F] via-[#F59E0B] to-[#D97706] shadow-md border-2 border-[#FEF3C7] flex items-center justify-center cursor-pointer select-none"
+                className="absolute -top-10 left-32 w-16 h-16 rounded-full bg-gradient-to-br from-[#FBDF5F] via-[#F59E0B] to-[#D97706] shadow-md border-2 border-[#FEF3C7] flex items-center justify-center select-none pointer-events-none"
               >
                 {/* 3D embossed circle border */}
                 <div className="w-[84%] h-[84%] rounded-full border border-amber-600/30 flex items-center justify-center font-bold text-amber-900 text-sm">
@@ -545,13 +555,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
             {t.slogan}
           </div>
 
-          {/* Carousel indicators showing progress dots */}
-          <div className="flex justify-center items-center gap-1.5 pt-1">
-            <span className="w-5 h-1.5 rounded-full bg-[#10B981] dark:bg-emerald-400" />
-            <span className="w-3.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800" />
-            <span className="w-3.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800" />
-          </div>
-
         </div>
 
       </main>
@@ -587,7 +590,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
             />
             
             {/* Modal Box */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div 
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="config-modal-title"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            >
               <motion.div
                 initial={{ scale: 0.94, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -597,7 +605,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Database className="w-5 h-5 text-[#10B981]" />
-                    <h4 className="text-base font-extrabold text-[#111827] dark:text-slate-100">
+                    <h4 id="config-modal-title" className="text-base font-extrabold text-[#111827] dark:text-slate-100">
                       Konfigurasi Firebase
                     </h4>
                   </div>

@@ -1,5 +1,5 @@
 import { onValue, dbPush, dbSet, dbUpdate, dbRemove } from '../firebase/config';
-import { Transaction, Budget } from '../types';
+import { Transaction, Budget, SavingGoal, BackupData } from '../types';
 
 export const DEFAULT_CATEGORIES = [
   'Makanan & Minuman',
@@ -15,7 +15,6 @@ export const DEFAULT_CATEGORIES = [
   'Lainnya'
 ];
 
-// Subscribe to transactions
 export const subscribeToTransactions = (uid: string, callback: (txs: Transaction[]) => void) => {
   const path = `users/${uid}/transactions`;
   return onValue(path, (snapshot) => {
@@ -36,7 +35,6 @@ export const subscribeToTransactions = (uid: string, callback: (txs: Transaction
         });
       });
     }
-    // Sort transactions by date descending, then by createdAt descending
     txs.sort((a, b) => {
       const timeA = new Date(a.date).getTime();
       const timeB = new Date(b.date).getTime();
@@ -49,7 +47,6 @@ export const subscribeToTransactions = (uid: string, callback: (txs: Transaction
   });
 };
 
-// Subscribe to budgets
 export const subscribeToBudgets = (uid: string, callback: (budgets: Budget[]) => void) => {
   const path = `users/${uid}/budgets`;
   return onValue(path, (snapshot) => {
@@ -69,7 +66,31 @@ export const subscribeToBudgets = (uid: string, callback: (budgets: Budget[]) =>
   });
 };
 
-// Subscribe to categories list with automatic bootstrapping if empty
+export const subscribeToGoals = (uid: string, callback: (goals: SavingGoal[]) => void) => {
+  const path = `users/${uid}/goals`;
+  return onValue(path, (snapshot) => {
+    const data = snapshot.val();
+    const goalsList: SavingGoal[] = [];
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        const item = data[key];
+        goalsList.push({
+          id: key,
+          title: item.title || 'Target',
+          targetAmount: Number(item.targetAmount) || 0,
+          currentAmount: Number(item.currentAmount) || 0,
+          deadline: item.deadline || '',
+          category: item.category || '',
+          createdAt: item.createdAt || Date.now(),
+          updatedAt: item.updatedAt || Date.now()
+        });
+      });
+    }
+    goalsList.sort((a, b) => b.createdAt - a.createdAt);
+    callback(goalsList);
+  });
+};
+
 export const subscribeToCategories = (uid: string, callback: (categories: string[]) => void) => {
   const path = `users/${uid}/settings/categories/list`;
   return onValue(path, (snapshot) => {
@@ -83,7 +104,6 @@ export const subscribeToCategories = (uid: string, callback: (categories: string
         callback(DEFAULT_CATEGORIES);
       }
     } else {
-      // Bootstrap with default categories if empty
       dbSet(path, DEFAULT_CATEGORIES)
         .then(() => callback(DEFAULT_CATEGORIES))
         .catch(() => callback(DEFAULT_CATEGORIES));
@@ -91,7 +111,6 @@ export const subscribeToCategories = (uid: string, callback: (categories: string
   });
 };
 
-// Add new transaction
 export const addTransaction = async (
   uid: string,
   tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>
@@ -107,7 +126,6 @@ export const addTransaction = async (
   return dbPush(path, payload);
 };
 
-// Update existing transaction
 export const updateTransaction = async (
   uid: string,
   txId: string,
@@ -121,15 +139,12 @@ export const updateTransaction = async (
   return dbUpdate(path, payload);
 };
 
-// Delete transaction
 export const deleteTransaction = async (uid: string, txId: string) => {
   const path = `users/${uid}/transactions/${txId}`;
   return dbRemove(path);
 };
 
-// Create or Update Budget
 export const saveBudget = async (uid: string, category: string, limit: number) => {
-  // Use category name with safe character filtering as key, or a simple id
   const budgetId = category.replace(/[^a-zA-Z0-9]/g, '_');
   const path = `users/${uid}/budgets/${budgetId}`;
   const payload = {
@@ -139,14 +154,124 @@ export const saveBudget = async (uid: string, category: string, limit: number) =
   return dbSet(path, payload);
 };
 
-// Delete Budget
 export const deleteBudget = async (uid: string, budgetId: string) => {
   const path = `users/${uid}/budgets/${budgetId}`;
   return dbRemove(path);
 };
 
-// Update Categories list
+export const saveGoal = async (
+  uid: string,
+  goal: {
+    id?: string;
+    title: string;
+    targetAmount: number;
+    currentAmount: number;
+    deadline?: string;
+  }
+) => {
+  const timestamp = Date.now();
+  if (goal.id) {
+    const path = `users/${uid}/goals/${goal.id}`;
+    return dbUpdate(path, {
+      title: goal.title.trim(),
+      targetAmount: Number(goal.targetAmount),
+      currentAmount: Number(goal.currentAmount),
+      deadline: goal.deadline || '',
+      updatedAt: timestamp
+    });
+  } else {
+    const path = `users/${uid}/goals`;
+    return dbPush(path, {
+      title: goal.title.trim(),
+      targetAmount: Number(goal.targetAmount),
+      currentAmount: Number(goal.currentAmount),
+      deadline: goal.deadline || '',
+      createdAt: timestamp,
+      updatedAt: timestamp
+    });
+  }
+};
+
+export const deleteGoal = async (uid: string, goalId: string) => {
+  const path = `users/${uid}/goals/${goalId}`;
+  return dbRemove(path);
+};
+
+export const contributeToGoal = async (
+  uid: string,
+  goalId: string,
+  currentAmount: number,
+  deltaAmount: number
+) => {
+  const path = `users/${uid}/goals/${goalId}`;
+  const newAmount = Math.max(0, currentAmount + deltaAmount);
+  return dbUpdate(path, {
+    currentAmount: newAmount,
+    updatedAt: Date.now()
+  });
+};
+
 export const saveCategories = async (uid: string, list: string[]) => {
   const path = `users/${uid}/settings/categories/list`;
   return dbSet(path, list);
+};
+
+export const deleteCategory = async (uid: string, currentList: string[], categoryToDelete: string) => {
+  const updated = currentList.filter(c => c !== categoryToDelete);
+  return saveCategories(uid, updated);
+};
+
+export const restoreFullBackup = async (uid: string, backup: BackupData) => {
+  if (!backup || !backup.data) {
+    throw new Error('Format berkas cadangan tidak valid');
+  }
+
+  const basePath = `users/${uid}`;
+  const { transactions, budgets, categories, goals } = backup.data;
+
+  if (Array.isArray(categories) && categories.length > 0) {
+    await dbSet(`${basePath}/settings/categories/list`, categories);
+  }
+
+  if (Array.isArray(budgets)) {
+    const budgetMap: Record<string, { category: string; limit: number }> = {};
+    budgets.forEach(b => {
+      const bId = b.id || b.category.replace(/[^a-zA-Z0-9]/g, '_');
+      budgetMap[bId] = { category: b.category, limit: Number(b.limit) || 0 };
+    });
+    await dbSet(`${basePath}/budgets`, budgetMap);
+  }
+
+  if (Array.isArray(transactions)) {
+    const txMap: Record<string, Omit<Transaction, 'id'>> = {};
+    transactions.forEach(t => {
+      const tId = t.id || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      txMap[tId] = {
+        type: t.type,
+        amount: Number(t.amount) || 0,
+        date: t.date,
+        category: t.category,
+        description: t.description || '',
+        createdAt: t.createdAt || Date.now(),
+        updatedAt: t.updatedAt || Date.now()
+      };
+    });
+    await dbSet(`${basePath}/transactions`, txMap);
+  }
+
+  if (Array.isArray(goals)) {
+    const goalsMap: Record<string, Omit<SavingGoal, 'id'>> = {};
+    goals.forEach(g => {
+      const gId = g.id || `goal_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      goalsMap[gId] = {
+        title: g.title,
+        targetAmount: Number(g.targetAmount) || 0,
+        currentAmount: Number(g.currentAmount) || 0,
+        deadline: g.deadline || '',
+        createdAt: g.createdAt || Date.now(),
+        updatedAt: g.updatedAt || Date.now()
+      };
+    });
+    await dbSet(`${basePath}/goals`, goalsMap);
+  }
 };

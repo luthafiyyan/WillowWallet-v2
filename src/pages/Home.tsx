@@ -1,30 +1,30 @@
 import React, { useMemo } from 'react';
 import { 
   Plus, 
-  TrendingUp, 
-  TrendingDown, 
-  Sparkles, 
   ArrowRight, 
   HelpCircle,
   FileDown,
-  ChevronRight,
   PieChart,
   Edit3,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Target,
+  SlidersHorizontal
 } from 'lucide-react';
-import { Transaction, Budget, AppUser } from '../types';
+import { Transaction, Budget, AppUser, SavingGoal } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
-import { motion } from 'motion/react';
 import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface HomeProps {
   user: AppUser;
   transactions: Transaction[];
   budgets: Budget[];
+  goals?: SavingGoal[];
   onOpenAddTransaction: () => void;
+  onOpenAddGoal?: () => void;
   onEditTransaction: (tx: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
+  onDeleteGoal?: (goalId: string) => void;
   onNavigateTab: (tab: 'home' | 'transactions' | 'analytics' | 'profile') => void;
   onViewTransaction: (tx: Transaction) => void;
   lang?: 'ID' | 'EN';
@@ -34,9 +34,12 @@ export const Home: React.FC<HomeProps> = ({
   user,
   transactions,
   budgets,
+  goals = [],
   onOpenAddTransaction,
+  onOpenAddGoal,
   onEditTransaction,
   onDeleteTransaction,
+  onDeleteGoal,
   onNavigateTab,
   onViewTransaction,
   lang = 'ID',
@@ -61,10 +64,14 @@ export const Home: React.FC<HomeProps> = ({
     if (lang === 'ID') return catName;
     const catMap: Record<string, string> = {
       'Makanan': 'Food & Drink',
+      'Makanan & Minuman': 'Food & Drink',
       'Transportasi': 'Transportation',
       'Belanja': 'Shopping',
       'Hiburan': 'Entertainment',
       'Tagihan': 'Bills & Utilities',
+      'Tagihan & Utilitas': 'Bills & Utilities',
+      'Kesehatan': 'Health',
+      'Pendidikan': 'Education',
       'Lainnya': 'Others',
       'Gaji': 'Salary',
       'Investasi': 'Investment',
@@ -73,15 +80,14 @@ export const Home: React.FC<HomeProps> = ({
     return catMap[catName] || catName;
   };
 
-  // Compute metrics
   const { totalIncome, totalExpense, activeBalance } = useMemo(() => {
     let inc = 0;
     let exp = 0;
-    transactions.forEach((t) => {
-      if (t.type === 'income') {
-        inc += t.amount;
+    transactions.forEach((tx) => {
+      if (tx.type === 'income') {
+        inc += tx.amount;
       } else {
-        exp += t.amount;
+        exp += tx.amount;
       }
     });
     return {
@@ -91,12 +97,9 @@ export const Home: React.FC<HomeProps> = ({
     };
   }, [transactions]);
 
-  // Compute budget spent sums for current month
   const budgetSpent = useMemo(() => {
-    const currentYearMonth = new Date().toISOString().substring(0, 7); // "YYYY-MM"
+    const currentYearMonth = new Date().toISOString().substring(0, 7);
     const map: Record<string, number> = {};
-    
-    // Filter transactions from this month to check against budgets
     transactions.forEach((tx) => {
       if (tx.type === 'expense' && tx.date.startsWith(currentYearMonth)) {
         map[tx.category] = (map[tx.category] || 0) + tx.amount;
@@ -105,7 +108,6 @@ export const Home: React.FC<HomeProps> = ({
     return map;
   }, [transactions]);
 
-  // Budget progress percentage computations
   const activeBudgets = useMemo(() => {
     return budgets.map((b) => {
       const spent = budgetSpent[b.category] || 0;
@@ -119,23 +121,21 @@ export const Home: React.FC<HomeProps> = ({
     });
   }, [budgets, budgetSpent]);
 
-  // Get 4 most recent transactions
   const recentTransactions = useMemo(() => {
     return transactions.slice(0, 4);
   }, [transactions]);
 
-  // Quick export to CSV helper
   const handleExportCSV = () => {
     if (transactions.length === 0) return;
     const headers = ['ID', 'Type', 'Category', 'Amount', 'Date', 'Description', 'CreatedAt'];
-    const rows = transactions.map(t => [
-      t.id,
-      t.type,
-      t.category,
-      t.amount,
-      t.date,
-      t.description.replace(/"/g, '""'),
-      new Date(t.createdAt).toISOString()
+    const rows = transactions.map(item => [
+      item.id,
+      item.type,
+      item.category,
+      item.amount,
+      item.date,
+      item.description.replace(/"/g, '""'),
+      new Date(item.createdAt).toISOString()
     ]);
     
     const csvContent = "data:text/csv;charset=utf-8," 
@@ -152,100 +152,95 @@ export const Home: React.FC<HomeProps> = ({
 
   return (
     <div className="space-y-6 pb-28">
-      
-      {/* Header Profile Section */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[#64748B] dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+          <p className="text-text-secondary dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
             {greeting}
           </p>
-          <h1 className="text-2xl font-bold text-text-primary dark:text-slate-100 mt-1 flex items-center gap-1.5">
-            {lang === 'ID' ? 'Halo' : 'Hello'}, {user.displayName || (lang === 'ID' ? 'Pengguna' : 'User')} 👋
+          <h1 className="text-2xl font-bold text-text-primary dark:text-slate-100 mt-1">
+            {lang === 'ID' ? 'Halo' : 'Hello'}, {user.displayName || (lang === 'ID' ? 'Pengguna' : 'User')}
           </h1>
         </div>
         <button 
+          type="button"
           onClick={() => onNavigateTab('profile')}
-          className="w-10 h-10 rounded-full overflow-hidden border border-white/60 dark:border-white/15 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md shadow-xs hover:scale-105 transition-transform p-0.5"
-          title={lang === 'ID' ? 'Buka Profil' : 'Open Profile'}
+          className="w-11 h-11 rounded-full overflow-hidden border border-white/60 dark:border-white/15 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md shadow-xs hover:scale-105 transition-transform p-0.5 focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label={lang === 'ID' ? 'Buka Pengaturan Profil' : 'Open Profile Settings'}
         >
           <img 
-            src={user.photoURL || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.displayName}`} 
-            alt="Profile Avatar" 
+            src={user.photoURL || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.displayName || 'user'}`} 
+            alt={user.displayName ? `${user.displayName} avatar` : 'User profile avatar'} 
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover rounded-full" 
           />
         </button>
       </div>
 
-      {/* Responsive Grid Layout - Dual Column on desktop, single column on mobile */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Left Column: Balance Card & Recent Transactions (Takes 7/12 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Liquid Glass Emerald Hero Card */}
-          <div className="liquid-glass-emerald p-7 rounded-[32px] text-white flex justify-between items-end relative overflow-hidden transition-all duration-300">
-            {/* Ambient internal glows and subtle specular pattern */}
-            <div className="absolute -top-16 -right-16 w-52 h-52 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-16 -left-16 w-44 h-44 rounded-full bg-black/10 blur-xl pointer-events-none" />
-            
-            <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-              <svg className="w-32 h-32 text-white" viewBox="0 0 200 200" fill="currentColor">
-                <circle cx="100" cy="100" r="80"/>
-              </svg>
-            </div>
-            
+          <section aria-labelledby="balance-card-heading" className="liquid-glass-emerald p-7 rounded-[32px] text-white flex justify-between items-end relative overflow-hidden transition-all duration-300">
             <div className="relative z-10">
-              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">{t.activeBalance}</p>
-              <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-xs">{formatRupiah(activeBalance)}</h2>
+              <p id="balance-card-heading" className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">
+                {t.activeBalance}
+              </p>
+              <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-xs">
+                {formatRupiah(activeBalance)}
+              </h2>
               <div className="mt-5 flex gap-2.5">
-                <span className="px-3 py-1 bg-white/20 hover:bg-white/25 border border-white/30 backdrop-blur-md rounded-full text-[10px] font-semibold transition-all">
+                <span className="px-3 py-1 bg-white/20 border border-white/30 rounded-full text-[10px] font-semibold">
                   {activeBalance >= 0 ? t.surplus : t.deficit}
                 </span>
-                <span className="px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-md rounded-full text-[10px] font-semibold cursor-pointer transition-all" onClick={() => onNavigateTab('analytics')}>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('analytics')}
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 rounded-full text-[10px] font-semibold cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-white"
+                >
                   {t.viewDetail}
-                </span>
+                </button>
               </div>
             </div>
 
             <div className="relative z-10 text-right">
-              <div className="w-11 h-11 bg-white/20 rounded-2xl backdrop-blur-md border border-white/30 flex items-center justify-center mb-8 ml-auto shadow-xs">
-                <svg className="w-5.5 h-5.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-11 h-11 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center mb-6 ml-auto shadow-xs">
+                <svg className="w-5.5 h-5.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
               </div>
-              <p className="text-[10px] text-white/80 tracking-widest font-mono">**** {user.uid ? user.uid.substring(user.uid.length - 4).toUpperCase() : '4829'}</p>
+              <p className="text-[10px] text-white/80 tracking-widest font-mono">
+                UID: {user.uid ? user.uid.substring(user.uid.length - 4).toUpperCase() : 'SAND'}
+              </p>
             </div>
-          </div>
+          </section>
 
-          {/* Recent Transactions List */}
-          <div className="space-y-3">
+          <section aria-labelledby="recent-tx-heading" className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
+              <h3 id="recent-tx-heading" className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest pl-1">
                 {t.recentTransactions}
-              </h4>
+              </h3>
               <button 
+                type="button"
                 onClick={() => onNavigateTab('transactions')} 
-                className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 cursor-pointer focus-visible:ring-1 focus-visible:ring-primary rounded"
               >
-                {t.viewAll}
-                <ArrowRight className="w-3 h-3" />
+                <span>{t.viewAll}</span>
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
 
             {recentTransactions.length === 0 ? (
               <div className="liquid-glass-card p-8 rounded-[32px] border border-dashed border-slate-300 dark:border-slate-700/80 text-center flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-[#64748B] mb-2">
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-750 flex items-center justify-center text-text-secondary mb-1">
                   <HelpCircle className="w-6 h-6" />
                 </div>
-                <p className="text-xs text-[#64748B] dark:text-slate-400 font-semibold">
+                <p className="text-xs text-text-secondary dark:text-slate-300 font-semibold">
                   {t.noTxTitle}
                 </p>
-                <p className="text-[10px] text-[#64748B]/60">
+                <p className="text-[10px] text-text-secondary/70 max-w-xs">
                   {t.noTxDesc}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-1 gap-2.5 sm:gap-3" role="list">
                 {recentTransactions.map((tx) => {
                   const style = getCategoryStyle(tx.category);
                   const isIncome = tx.type === 'income';
@@ -253,30 +248,38 @@ export const Home: React.FC<HomeProps> = ({
                   return (
                     <div 
                       key={tx.id}
+                      role="listitem"
+                      tabIndex={0}
                       onClick={() => onViewTransaction(tx)}
-                      className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 group cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onViewTransaction(tx);
+                        }
+                      }}
+                      className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 group cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+                      aria-label={`${tx.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} ${formatRupiah(tx.amount)} ${tx.category}`}
                     >
                       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                         <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0 shadow-xs border border-white/40 dark:border-white/5`}>
-                          <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
+                          <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" aria-hidden="true" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h5 className="text-xs sm:text-sm font-bold text-[#0F172A] dark:text-slate-100 line-clamp-1">
+                          <h4 className="text-xs sm:text-sm font-bold text-text-primary dark:text-slate-100 line-clamp-1">
                             {tx.description || getLocalizedCategoryName(tx.category)}
-                          </h5>
+                          </h4>
                           <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
-                            <span className="text-[10px] font-semibold text-[#64748B] dark:text-slate-400">
+                            <span className="text-[10px] font-semibold text-text-secondary dark:text-slate-400">
                               {getLocalizedCategoryName(tx.category)}
                             </span>
                             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                            <span className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium whitespace-nowrap">
+                            <span className="text-[10px] text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
                               {tx.date}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Right hand layout for Amount and controls - stacked on mobile, row on desktop */}
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-3 flex-shrink-0">
                         <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap ${isIncome ? 'text-[#16A34A] dark:text-emerald-400' : 'text-[#EF4444] dark:text-rose-400'}`}>
                           {isIncome ? '+' : '-'} {formatRupiah(tx.amount)}
@@ -284,22 +287,24 @@ export const Home: React.FC<HomeProps> = ({
                         
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button 
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               onEditTransaction(tx);
                             }}
-                            className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-[#64748B] hover:text-[#1B8A5A] dark:hover:text-emerald-400 hover:bg-[#1B8A5A]/10 transition-all cursor-pointer"
-                            title="Edit"
+                            className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 text-text-secondary hover:text-[#1B8A5A] dark:hover:text-emerald-400 transition-all cursor-pointer"
+                            aria-label={lang === 'ID' ? 'Edit transaksi' : 'Edit transaction'}
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button 
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               onDeleteTransaction(tx.id);
                             }}
-                            className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-[#64748B] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-all cursor-pointer"
-                            title={lang === 'ID' ? 'Hapus' : 'Delete'}
+                            className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 text-text-secondary hover:text-[#EF4444] transition-all cursor-pointer"
+                            aria-label={lang === 'ID' ? 'Hapus transaksi' : 'Delete transaction'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -310,97 +315,94 @@ export const Home: React.FC<HomeProps> = ({
                 })}
               </div>
             )}
-          </div>
+          </section>
         </div>
 
-        {/* Right Column: Layanan Cepat & Budget Progress (Takes 5/12 cols) */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Quick Action Bento Panel */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
+          <section aria-labelledby="quick-service-heading" className="space-y-3">
+            <h3 id="quick-service-heading" className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest pl-1">
               {t.quickService}
-            </h4>
+            </h3>
             <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-              
-              {/* Add Transaction */}
               <button 
+                type="button"
                 onClick={onOpenAddTransaction}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-[#1B8A5A] dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-[#1B8A5A] dark:text-emerald-400 flex items-center justify-center">
                   <Plus className="w-5 h-5 stroke-[2.5]" />
                 </div>
-                <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
+                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
                   {t.quickAdd}
                 </span>
               </button>
 
-              {/* Budget Baru Shortcut */}
               <button 
+                type="button"
                 onClick={() => onNavigateTab('analytics')}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-[#F59E0B] dark:text-amber-400 border border-amber-500/20 flex items-center justify-center">
-                  <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-[#F59E0B] dark:text-amber-400 flex items-center justify-center">
+                  <SlidersHorizontal className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
+                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
                   {t.quickBudget}
                 </span>
               </button>
 
-              {/* Analytics Shortcut */}
               <button 
+                type="button"
                 onClick={() => onNavigateTab('analytics')}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-2xl bg-teal-500/10 dark:bg-teal-500/20 text-[#3AA772] dark:text-teal-400 border border-teal-500/20 flex items-center justify-center">
-                  <PieChart className="w-5 h-5 stroke-[2.5]" />
+                <div className="w-10 h-10 rounded-xl bg-teal-500/10 dark:bg-teal-500/20 text-[#3AA772] dark:text-teal-400 flex items-center justify-center">
+                  <PieChart className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
+                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
                   {t.quickInsights}
                 </span>
               </button>
 
-              {/* Export Data */}
               <button 
+                type="button"
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-3xl flex flex-col items-center text-center gap-2 disabled:opacity-45 disabled:pointer-events-none cursor-pointer"
+                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 disabled:opacity-45 disabled:pointer-events-none cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-[#3B82F6] dark:text-blue-400 border border-blue-500/20 flex items-center justify-center">
-                  <FileDown className="w-5 h-5 stroke-[2.5]" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-[#3B82F6] dark:text-blue-400 flex items-center justify-center">
+                  <FileDown className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-bold text-[#1E293B] dark:text-slate-200">
+                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
                   {t.quickExport}
                 </span>
               </button>
-
             </div>
-          </div>
+          </section>
 
-          {/* Budget Progress Widget & Saving Goal */}
-          <div className="space-y-3">
+          <section aria-labelledby="budget-progress-heading" className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#64748B] dark:text-slate-400 uppercase tracking-widest pl-1">
+              <h3 id="budget-progress-heading" className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest pl-1">
                 {t.budgetProgress}
-              </h4>
+              </h3>
               <button 
+                type="button"
                 onClick={() => onNavigateTab('analytics')} 
-                className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 cursor-pointer focus-visible:ring-1 focus-visible:ring-primary rounded"
               >
-                {t.manage}
-                <ArrowRight className="w-3 h-3" />
+                <span>{t.manage}</span>
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="liquid-glass-card p-6 rounded-[32px] space-y-5">
+            <div className="liquid-glass-card p-6 rounded-[32px] space-y-4">
               {activeBudgets.length === 0 ? (
                 <div className="text-center py-4 flex flex-col items-center gap-2">
-                  <AlertCircle className="w-8 h-8 text-[#64748B]/60" />
-                  <p className="text-xs text-[#64748B] dark:text-slate-400">
+                  <AlertCircle className="w-8 h-8 text-text-secondary/60" />
+                  <p className="text-xs text-text-secondary dark:text-slate-400">
                     {t.noBudgetTitle}
                   </p>
                   <button 
+                    type="button"
                     onClick={() => onNavigateTab('analytics')}
                     className="text-xs bg-[#1B8A5A]/10 text-[#1B8A5A] dark:text-emerald-400 px-4 py-2 rounded-xl font-bold hover:bg-[#1B8A5A]/20 transition-all mt-1 cursor-pointer"
                   >
@@ -408,28 +410,27 @@ export const Home: React.FC<HomeProps> = ({
                   </button>
                 </div>
               ) : (
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {activeBudgets.slice(0, 3).map((b) => {
-                    // Determine bar color based on limits
                     const barColorClass = b.percentage >= 100 
-                      ? 'bg-gradient-to-r from-rose-500 to-red-600' 
+                      ? 'bg-rose-500' 
                       : b.percentage >= 75 
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
-                        : 'bg-gradient-to-r from-emerald-500 to-teal-500';
+                        ? 'bg-amber-500' 
+                        : 'bg-emerald-500';
 
                     return (
-                      <div key={b.id} className="space-y-2">
-                        <div className="flex justify-between items-center text-xs font-semibold text-[#1E293B] dark:text-slate-100">
+                      <div key={b.id} className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs font-semibold text-text-primary dark:text-slate-100">
                           <span>{getLocalizedCategoryName(b.category)}</span>
                           <span className="font-bold">{b.percentage}%</span>
                         </div>
-                        <div className="w-full h-3 bg-slate-200/70 dark:bg-slate-700/60 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                        <div className="w-full h-2.5 bg-slate-200/70 dark:bg-slate-700/60 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full rounded-full transition-all duration-500 ${barColorClass}`}
+                            className={`h-full rounded-full transition-all duration-300 ${barColorClass}`}
                             style={{ width: `${b.percentage}%` }}
                           />
                         </div>
-                        <p className="text-[10px] text-[#64748B] dark:text-slate-400 font-medium">
+                        <p className="text-[10px] text-text-secondary dark:text-slate-400 font-medium">
                           {formatRupiah(b.spent)} / {formatRupiah(b.limit)}
                         </p>
                       </div>
@@ -437,26 +438,108 @@ export const Home: React.FC<HomeProps> = ({
                   })}
                 </div>
               )}
-
-              {/* Saving Goal Mini Card from the design spec */}
-              <div className="bg-emerald-500/8 dark:bg-emerald-500/5 p-4 rounded-2xl border border-dashed border-emerald-500/25 flex items-center gap-3">
-                <div className="text-2xl">⛰️</div>
-                <div className="flex-grow">
-                  <p className="text-[9px] text-[#64748B] dark:text-slate-400 font-bold uppercase tracking-tight">{t.savingGoalTitle}</p>
-                  <p className="text-xs font-bold text-[#1E293B] dark:text-slate-200">{lang === 'ID' ? 'Liburan ke Bali' : 'Trip to Bali'}</p>
-                  <p className="text-[10px] text-[#1B8A5A] dark:text-emerald-400 font-semibold mt-0.5">
-                    {lang === 'ID' 
-                      ? `${Math.min(100, Math.max(0, Math.round((activeBalance / 20000000) * 100)))}% tercapai (Target Rp 20jt)` 
-                      : `${Math.min(100, Math.max(0, Math.round((activeBalance / 20000000) * 100)))}% reached (Target Rp 20M)`}
-                  </p>
-                </div>
-              </div>
             </div>
-          </div>
+          </section>
+
+          <section aria-labelledby="saving-goal-heading" className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 id="saving-goal-heading" className="text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest pl-1">
+                {t.savingGoalTitle}
+              </h3>
+              {onOpenAddGoal && (
+                <button
+                  type="button"
+                  onClick={onOpenAddGoal}
+                  className="text-xs text-[#1B8A5A] dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 cursor-pointer focus-visible:ring-1 focus-visible:ring-primary rounded"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t.addGoalBtn}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="liquid-glass-card p-5 rounded-[32px] space-y-3">
+              {goals.length === 0 ? (
+                <div className="text-center py-4 flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-bold text-text-primary dark:text-slate-200">
+                    {t.noGoalsTitle}
+                  </p>
+                  <p className="text-[10px] text-text-secondary dark:text-slate-400 max-w-xs">
+                    {t.noGoalsDesc}
+                  </p>
+                  {onOpenAddGoal && (
+                    <button
+                      type="button"
+                      onClick={onOpenAddGoal}
+                      className="text-xs bg-[#1B8A5A]/10 text-[#1B8A5A] dark:text-emerald-400 px-3.5 py-1.5 rounded-xl font-bold hover:bg-[#1B8A5A]/20 transition-all cursor-pointer mt-1"
+                    >
+                      {t.addGoalBtn}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {goals.map((goal) => {
+                    const pct = goal.targetAmount > 0
+                      ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
+                      : 0;
+
+                    return (
+                      <div 
+                        key={goal.id} 
+                        className="bg-emerald-500/8 dark:bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/20 space-y-2 relative"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-xs font-bold text-text-primary dark:text-slate-100">
+                              {goal.title}
+                            </h4>
+                            {goal.deadline && (
+                              <p className="text-[9px] text-text-secondary dark:text-slate-400 mt-0.5">
+                                {t.deadline}: {goal.deadline}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-extrabold text-[#1B8A5A] dark:text-emerald-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-2xs">
+                              {pct}%
+                            </span>
+                            {onDeleteGoal && (
+                              <button
+                                type="button"
+                                onClick={() => onDeleteGoal(goal.id)}
+                                className="p-1 text-text-secondary hover:text-rose-500 rounded transition-colors"
+                                aria-label={lang === 'ID' ? `Hapus target ${goal.title}` : `Delete goal ${goal.title}`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="w-full h-2 bg-slate-200/80 dark:bg-slate-700/60 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-300"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+
+                        <div className="flex justify-between items-center text-[10px] text-text-secondary dark:text-slate-400 font-medium">
+                          <span>{formatRupiah(goal.currentAmount)}</span>
+                          <span>{t.target}: {formatRupiah(goal.targetAmount)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
-
       </div>
-
     </div>
   );
 };

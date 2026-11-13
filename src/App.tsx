@@ -1,29 +1,35 @@
-import { useState, useEffect, useMemo } from 'react';
-import { AppUser, Transaction, Budget } from './types';
-import { auth, isSandboxMode } from './firebase/config';
+import { useState, useEffect } from 'react';
+import { AppUser, Transaction, Budget, SavingGoal, BackupData } from './types';
+import { auth } from './firebase/config';
 import { 
   subscribeToTransactions, 
   subscribeToBudgets, 
   subscribeToCategories,
+  subscribeToGoals,
   addTransaction,
   updateTransaction,
   deleteTransaction,
   saveBudget,
   deleteBudget,
-  saveCategories
+  saveCategories,
+  deleteCategory,
+  saveGoal,
+  deleteGoal,
+  restoreFullBackup
 } from './services/db';
 import { ToastProvider, useToast } from './components/Toast';
 import { BottomNav, TabId } from './components/BottomNav';
 import { BottomSheet } from './components/BottomSheet';
 import { ConfirmationDialog } from './components/ConfirmationDialog';
 import { TransactionDetailModal } from './components/TransactionDetailModal';
+import { GoalModal } from './components/GoalModal';
 import { SplashScreen } from './components/SplashScreen';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { Transactions } from './pages/Transactions';
 import { Analytics } from './pages/Analytics';
 import { Profile } from './pages/Profile';
-import { Loader2, Sparkles, Database, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { APP_TRANSLATIONS } from './utils/lang';
 import { 
   registerServiceWorker, 
@@ -38,25 +44,25 @@ function AppContent() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
-  // Database states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [goals, setGoals] = useState<SavingGoal[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
 
-  // PWA & Connection states
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [swUpdateRegistration, setSwUpdateRegistration] = useState<ServiceWorkerRegistration | null>(null);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-  // Navigation states
   const [activeTab, setActiveTab] = useState<TabId>('home');
 
-  // Modals & Sheets
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<SavingGoal | null>(null);
+
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteType, setDeleteType] = useState<'transaction' | 'budget' | null>(null);
+  const [deleteType, setDeleteType] = useState<'transaction' | 'budget' | 'goal' | null>(null);
   const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
 
   const [darkMode, setDarkMode] = useState(() => {
@@ -67,7 +73,6 @@ function AppContent() {
     return (localStorage.getItem('WILLOW_LANG') as 'ID' | 'EN') || 'ID';
   });
 
-  // Keep language synced
   useEffect(() => {
     localStorage.setItem('WILLOW_LANG', lang);
   }, [lang]);
@@ -75,7 +80,6 @@ function AppContent() {
   const t = APP_TRANSLATIONS[lang];
   const gt = t.global;
 
-  // Set dark/light theme
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -86,7 +90,6 @@ function AppContent() {
     }
   }, [darkMode]);
 
-  // PWA Service Worker & Install Listener Registration
   useEffect(() => {
     registerServiceWorker({
       onUpdateAvailable: (registration) => {
@@ -107,7 +110,6 @@ function AppContent() {
         );
       },
       onOfflineStatusChange: (offline) => {
-        setIsOffline(offline);
         if (offline) {
           showToast(
             lang === 'ID'
@@ -131,8 +133,6 @@ function AppContent() {
     });
   }, [lang, showToast]);
 
-
-  // 1. Listen for Authentication status
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((firebaseUser) => {
       setAuthLoading(false);
@@ -148,12 +148,12 @@ function AppContent() {
         setTransactions([]);
         setBudgets([]);
         setCategories([]);
+        setGoals([]);
       }
     });
     return unsub;
   }, []);
 
-  // 2. Load data from Realtime Database when authenticated
   useEffect(() => {
     if (!user) return;
     
@@ -161,6 +161,7 @@ function AppContent() {
     let unsubTxs = () => {};
     let unsubBudgets = () => {};
     let unsubCategories = () => {};
+    let unsubGoals = () => {};
 
     try {
       unsubTxs = subscribeToTransactions(user.uid, (txList) => {
@@ -175,6 +176,10 @@ function AppContent() {
       unsubCategories = subscribeToCategories(user.uid, (catList) => {
         setCategories(catList);
       });
+
+      unsubGoals = subscribeToGoals(user.uid, (goalList) => {
+        setGoals(goalList);
+      });
     } catch (e) {
       console.error('Database Subscription Error', e);
       showToast(lang === 'ID' ? 'Gagal memuat database realtime' : 'Failed to load realtime database', 'error');
@@ -185,10 +190,10 @@ function AppContent() {
       unsubTxs();
       unsubBudgets();
       unsubCategories();
+      unsubGoals();
     };
   }, [user]);
 
-  // Handle addition/edit submission from the bottom sheet
   const handleSheetSubmit = async (data: {
     type: 'income' | 'expense';
     amount: number;
@@ -200,11 +205,9 @@ function AppContent() {
 
     try {
       if (editingTransaction) {
-        // Edit Mode
         await updateTransaction(user.uid, editingTransaction.id, data);
         showToast(gt.txUpdateSuccess, 'success');
       } else {
-        // Create Mode
         await addTransaction(user.uid, data);
         showToast(gt.txSaveSuccess, 'success');
       }
@@ -215,25 +218,26 @@ function AppContent() {
     setEditingTransaction(null);
   };
 
-  // Open sheet for editing
   const handleEditTransactionClick = (tx: Transaction) => {
     setEditingTransaction(tx);
     setIsSheetOpen(true);
   };
 
-  // Open confirm modal for deleting transaction
   const handleDeleteTransactionClick = (id: string) => {
     setDeleteId(id);
     setDeleteType('transaction');
   };
 
-  // Open confirm modal for deleting a budget
   const handleDeleteBudgetClick = (id: string) => {
     setDeleteId(id);
     setDeleteType('budget');
   };
 
-  // Handle actual deletions when confirmed
+  const handleDeleteGoalClick = (id: string) => {
+    setDeleteId(id);
+    setDeleteType('goal');
+  };
+
   const handleConfirmDelete = async () => {
     if (!user || !deleteId || !deleteType) return;
 
@@ -244,6 +248,9 @@ function AppContent() {
       } else if (deleteType === 'budget') {
         await deleteBudget(user.uid, deleteId);
         showToast(gt.budgetDeleteSuccess, 'success');
+      } else if (deleteType === 'goal') {
+        await deleteGoal(user.uid, deleteId);
+        showToast(gt.goalDeleteSuccess, 'success');
       }
     } catch (error) {
       console.error('Error deleting record', error);
@@ -254,7 +261,6 @@ function AppContent() {
     setDeleteType(null);
   };
 
-  // Create or Update a budget limit
   const handleSaveBudget = async (category: string, limit: number) => {
     if (!user) return;
     try {
@@ -263,6 +269,46 @@ function AppContent() {
     } catch (e) {
       console.error('Error saving budget', e);
       showToast(gt.budgetError, 'error');
+    }
+  };
+
+  const handleSaveGoal = async (data: {
+    id?: string;
+    title: string;
+    targetAmount: number;
+    currentAmount: number;
+    deadline?: string;
+  }) => {
+    if (!user) return;
+    try {
+      await saveGoal(user.uid, data);
+      showToast(gt.goalSaveSuccess, 'success');
+      setIsGoalModalOpen(false);
+      setEditingGoal(null);
+    } catch (e) {
+      console.error('Error saving goal', e);
+      showToast(lang === 'ID' ? 'Gagal menyimpan target' : 'Failed to save goal', 'error');
+    }
+  };
+
+  const handleRestoreBackup = async (backup: BackupData) => {
+    if (!user) return;
+    try {
+      await restoreFullBackup(user.uid, backup);
+      showToast(gt.restoreSuccess, 'success');
+    } catch (e) {
+      console.error('Error restoring backup', e);
+      showToast(gt.restoreError, 'error');
+    }
+  };
+
+  const handleDeleteCategory = async (catToDelete: string) => {
+    if (!user) return;
+    try {
+      await deleteCategory(user.uid, categories, catToDelete);
+      showToast(lang === 'ID' ? `Kategori "${catToDelete}" dihapus` : `Category "${catToDelete}" removed`, 'info');
+    } catch (e) {
+      console.error('Error removing category', e);
     }
   };
 
@@ -276,15 +322,13 @@ function AppContent() {
     }
   };
 
-  // 1. Loading Splash Screen
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
   }
 
-  // 2. Auth Loading state fallback (if splash finishes before auth, which is extremely rare)
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F7FB] dark:bg-[#0B1224] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-[#F0F4F8] dark:bg-[#060B14] flex flex-col items-center justify-center p-6 text-center">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
         <p className="text-xs font-semibold text-text-secondary mt-3">
           {lang === 'ID' ? 'Memuat sistem WillowWallet v2...' : 'Loading WillowWallet v2...'}
@@ -293,7 +337,6 @@ function AppContent() {
     );
   }
 
-  // If not authenticated, render Login Page
   if (!user) {
     return (
       <Login 
@@ -306,15 +349,12 @@ function AppContent() {
 
   return (
     <div className="min-h-screen w-full bg-[#F0F4F8] dark:bg-[#060B14] flex flex-col relative overflow-x-hidden">
-      {/* Ambient Fluid Background Orbs for Liquid Glass Refraction */}
-      <div className="fixed -top-24 -left-24 w-96 md:w-[600px] h-96 md:h-[600px] rounded-full bg-emerald-500/15 dark:bg-emerald-500/10 blur-[130px] pointer-events-none -z-10" />
-      <div className="fixed -bottom-24 -right-24 w-96 md:w-[600px] h-96 md:h-[600px] rounded-full bg-teal-400/15 dark:bg-cyan-500/10 blur-[140px] pointer-events-none -z-10" />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[700px] h-[350px] md:h-[700px] rounded-full bg-emerald-400/8 dark:bg-emerald-600/5 blur-[150px] pointer-events-none -z-10" />
+      <div 
+        aria-hidden="true"
+        className="fixed inset-0 pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_top_left,rgba(27,138,90,0.08),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(20,184,166,0.06),transparent_50%)]" 
+      />
 
-      {/* Main Full-Screen View Area */}
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 relative z-10">
-        
-        {/* Lazy DB loading spinner overlay */}
         {dbLoading && (
           <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md shadow-soft border border-white/70 dark:border-slate-700/50 rounded-full py-1.5 px-3.5 flex items-center gap-2 text-[10px] font-semibold text-text-secondary">
             <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
@@ -322,171 +362,186 @@ function AppContent() {
           </div>
         )}
 
-          {/* Subpage Router Switch */}
-          {activeTab === 'home' && (
-            <Home 
-              user={user}
-              transactions={transactions}
-              budgets={budgets}
-              onOpenAddTransaction={() => {
-                setEditingTransaction(null);
-                setIsSheetOpen(true);
+        {activeTab === 'home' && (
+          <Home 
+            user={user}
+            transactions={transactions}
+            budgets={budgets}
+            goals={goals}
+            onOpenAddTransaction={() => {
+              setEditingTransaction(null);
+              setIsSheetOpen(true);
+            }}
+            onOpenAddGoal={() => {
+              setEditingGoal(null);
+              setIsGoalModalOpen(true);
+            }}
+            onEditTransaction={handleEditTransactionClick}
+            onDeleteTransaction={handleDeleteTransactionClick}
+            onDeleteGoal={handleDeleteGoalClick}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onViewTransaction={setDetailTransaction}
+            lang={lang}
+          />
+        )}
+
+        {activeTab === 'transactions' && (
+          <Transactions 
+            transactions={transactions}
+            categories={categories}
+            onEditTransaction={handleEditTransactionClick}
+            onDeleteTransaction={handleDeleteTransactionClick}
+            onViewTransaction={setDetailTransaction}
+            lang={lang}
+          />
+        )}
+
+        {activeTab === 'analytics' && (
+          <Analytics 
+            transactions={transactions}
+            budgets={budgets}
+            categories={categories}
+            onSaveBudget={handleSaveBudget}
+            onDeleteBudget={handleDeleteBudgetClick}
+            lang={lang}
+          />
+        )}
+
+        {activeTab === 'profile' && (
+          <Profile 
+            user={user}
+            transactions={transactions}
+            budgets={budgets}
+            goals={goals}
+            categories={categories}
+            onLogout={handleLogout}
+            darkMode={darkMode}
+            onToggleDarkMode={() => setDarkMode(prev => !prev)}
+            lang={lang}
+            onSelectLanguage={(newLang) => setLang(newLang)}
+            onAddCategory={async (newCat) => {
+              const trimmed = newCat.trim();
+              if (!trimmed || categories.includes(trimmed)) return;
+              const updated = [...categories, trimmed];
+              setCategories(updated);
+              if (user) {
+                await saveCategories(user.uid, updated);
+              }
+              showToast(
+                lang === 'ID' 
+                  ? `Kategori "${trimmed}" berhasil ditambahkan!` 
+                  : `Category "${trimmed}" added!`, 
+                'success'
+              );
+            }}
+            onDeleteCategory={handleDeleteCategory}
+            onRestoreBackup={handleRestoreBackup}
+            showInstallBtn={showInstallPrompt}
+            onTriggerInstall={async () => {
+              const accepted = await triggerInstallPrompt();
+              if (accepted) {
+                showToast(lang === 'ID' ? 'Aplikasi berhasil dipasang!' : 'Application installed successfully!', 'success');
+                setShowInstallPrompt(false);
+              }
+            }}
+          />
+        )}
+      </main>
+
+      <BottomNav 
+        activeTab={activeTab}
+        onChangeTab={setActiveTab}
+        onOpenAddTransaction={() => {
+          setEditingTransaction(null);
+          setIsSheetOpen(true);
+        }}
+        lang={lang}
+      />
+
+      <BottomSheet 
+        isOpen={isSheetOpen}
+        onClose={() => {
+          setIsSheetOpen(false);
+          setEditingTransaction(null);
+        }}
+        onSubmit={handleSheetSubmit}
+        categories={categories}
+        editingTransaction={editingTransaction}
+        lang={lang}
+      />
+
+      <GoalModal
+        isOpen={isGoalModalOpen}
+        onClose={() => {
+          setIsGoalModalOpen(false);
+          setEditingGoal(null);
+        }}
+        onSubmit={handleSaveGoal}
+        editingGoal={editingGoal}
+        lang={lang}
+      />
+
+      <TransactionDetailModal 
+        isOpen={detailTransaction !== null}
+        onClose={() => setDetailTransaction(null)}
+        transaction={detailTransaction}
+        onEdit={handleEditTransactionClick}
+        onDelete={handleDeleteTransactionClick}
+        lang={lang}
+      />
+
+      <ConfirmationDialog 
+        isOpen={deleteId !== null}
+        onClose={() => {
+          setDeleteId(null);
+          setDeleteType(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title={
+          deleteType === 'transaction' 
+            ? (lang === 'ID' ? 'Hapus Catatan' : 'Delete Record') 
+            : deleteType === 'budget'
+              ? (lang === 'ID' ? 'Hapus Anggaran' : 'Delete Budget')
+              : (lang === 'ID' ? 'Hapus Target Tabungan' : 'Delete Savings Goal')
+        }
+        message={
+          deleteType === 'transaction' 
+            ? (lang === 'ID' ? 'Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini tidak dapat dibatalkan.' : 'Are you sure you want to delete this transaction record? This action cannot be undone.') 
+            : deleteType === 'budget'
+              ? (lang === 'ID' ? 'Apakah Anda yakin ingin mematikan limit anggaran untuk kategori ini?' : 'Are you sure you want to turn off the budget limit for this category?')
+              : (lang === 'ID' ? 'Apakah Anda yakin ingin menghapus target tabungan ini?' : 'Are you sure you want to delete this savings goal?')
+        }
+        lang={lang}
+      />
+
+      <AnimatePresence>
+        {swUpdateRegistration && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[400px] z-50 bg-primary text-white p-4 rounded-2xl shadow-medium flex items-center justify-between gap-3 backdrop-blur-sm pointer-events-auto"
+          >
+            <div className="flex items-center gap-2.5">
+              <RefreshCw className="w-4 h-4 animate-spin flex-shrink-0" />
+              <span className="text-xs font-bold leading-tight">
+                {lang === 'ID' ? 'Versi baru tersedia!' : 'A new version is available!'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                swUpdateRegistration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
               }}
-              onEditTransaction={handleEditTransactionClick}
-              onDeleteTransaction={handleDeleteTransactionClick}
-              onNavigateTab={(tab) => {
-                if (tab === 'analytics') {
-                  // If navigating to analytics, stay or direct to specific tab
-                  setActiveTab('analytics');
-                } else {
-                  setActiveTab(tab);
-                }
-              }}
-              onViewTransaction={setDetailTransaction}
-              lang={lang}
-            />
-          )}
-
-          {activeTab === 'transactions' && (
-            <Transactions 
-              transactions={transactions}
-              onEditTransaction={handleEditTransactionClick}
-              onDeleteTransaction={handleDeleteTransactionClick}
-              onViewTransaction={setDetailTransaction}
-              lang={lang}
-            />
-          )}
-
-          {activeTab === 'analytics' && (
-            <Analytics 
-              transactions={transactions}
-              budgets={budgets}
-              categories={categories}
-              onSaveBudget={handleSaveBudget}
-              onDeleteBudget={handleDeleteBudgetClick}
-              lang={lang}
-            />
-          )}
-
-          {activeTab === 'profile' && (
-            <Profile 
-              user={user}
-              transactions={transactions}
-              budgets={budgets}
-              categories={categories}
-              onLogout={handleLogout}
-              darkMode={darkMode}
-              onToggleDarkMode={() => setDarkMode(prev => !prev)}
-              lang={lang}
-              onSelectLanguage={(newLang) => setLang(newLang)}
-              onAddCategory={async (newCat) => {
-                const trimmed = newCat.trim();
-                if (!trimmed || categories.includes(trimmed)) return;
-                const updated = [...categories, trimmed];
-                setCategories(updated);
-                if (user) {
-                  await saveCategories(user.uid, updated);
-                }
-                showToast(
-                  lang === 'ID' 
-                    ? `Kategori "${trimmed}" berhasil ditambahkan!` 
-                    : `Category "${trimmed}" added!`, 
-                  'success'
-                );
-              }}
-              showInstallBtn={showInstallPrompt}
-              onTriggerInstall={async () => {
-                const accepted = await triggerInstallPrompt();
-                if (accepted) {
-                  showToast(lang === 'ID' ? 'Aplikasi berhasil dipasang!' : 'Application installed successfully!', 'success');
-                  setShowInstallPrompt(false);
-                }
-              }}
-            />
-          )}
-
-        </main>
-
-        {/* Floating Action Button & Bottom Navigation Panel */}
-        <BottomNav 
-          activeTab={activeTab}
-          onChangeTab={setActiveTab}
-          onOpenAddTransaction={() => {
-            setEditingTransaction(null);
-            setIsSheetOpen(true);
-          }}
-          lang={lang}
-        />
-
-        {/* Add/Edit Bottom Sheet Modal */}
-        <BottomSheet 
-          isOpen={isSheetOpen}
-          onClose={() => {
-            setIsSheetOpen(false);
-            setEditingTransaction(null);
-          }}
-          onSubmit={handleSheetSubmit}
-          categories={categories}
-          editingTransaction={editingTransaction}
-          lang={lang}
-        />
-
-        {/* Transaction Detail Viewer Modal */}
-        <TransactionDetailModal 
-          isOpen={detailTransaction !== null}
-          onClose={() => setDetailTransaction(null)}
-          transaction={detailTransaction}
-          onEdit={handleEditTransactionClick}
-          onDelete={handleDeleteTransactionClick}
-          lang={lang}
-        />
-
-        {/* Confirm Delete Modals */}
-        <ConfirmationDialog 
-          isOpen={deleteId !== null}
-          onClose={() => {
-            setDeleteId(null);
-            setDeleteType(null);
-          }}
-          onConfirm={handleConfirmDelete}
-          title={deleteType === 'transaction' ? (lang === 'ID' ? 'Hapus Catatan' : 'Delete Record') : (lang === 'ID' ? 'Hapus Anggaran' : 'Delete Budget')}
-          message={
-            deleteType === 'transaction' 
-              ? (lang === 'ID' ? 'Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini tidak dapat dibatalkan.' : 'Are you sure you want to delete this transaction record? This action cannot be undone.') 
-              : (lang === 'ID' ? 'Apakah Anda yakin ingin mematikan limit anggaran untuk kategori ini?' : 'Are you sure you want to turn off the budget limit for this category?')
-          }
-          lang={lang}
-        />
-
-        {/* Custom Update Service Worker Snackbar */}
-        <AnimatePresence>
-          {swUpdateRegistration && (
-            <motion.div
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              className="fixed top-4 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[400px] z-50 bg-primary text-white p-4 rounded-2xl shadow-medium flex items-center justify-between gap-3 backdrop-blur-sm pointer-events-auto"
+              className="px-3 py-1.5 rounded-xl bg-white text-primary text-[10px] font-bold hover:bg-slate-100 transition-all cursor-pointer whitespace-nowrap shadow-soft"
             >
-              <div className="flex items-center gap-2.5">
-                <RefreshCw className="w-4 h-4 animate-spin flex-shrink-0" />
-                <span className="text-xs font-bold leading-tight">
-                  {lang === 'ID' ? 'Versi baru tersedia!' : 'A new version is available!'}
-                </span>
-              </div>
-              <button
-                onClick={() => {
-                  swUpdateRegistration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-                  window.location.reload();
-                }}
-                className="px-3 py-1.5 rounded-xl bg-white text-primary text-[10px] font-bold hover:bg-slate-100 transition-all cursor-pointer whitespace-nowrap shadow-soft"
-              >
-                {lang === 'ID' ? 'Update Sekarang' : 'Update Now'}
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-      </div>
+              {lang === 'ID' ? 'Update Sekarang' : 'Update Now'}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

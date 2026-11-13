@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   X, 
   Calendar, 
-  Tag, 
   FileText, 
   Clock, 
   Edit3, 
@@ -33,6 +32,16 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   onDelete,
   lang = 'ID',
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!transaction) return null;
 
   const t = APP_TRANSLATIONS[lang].components.detailModal;
@@ -56,7 +65,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     return catMap[catName] || catName;
   };
 
-  // Format Local Date
   const formatLocalDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
@@ -66,12 +74,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         month: 'long',
         day: 'numeric'
       }).format(date);
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };
 
-  // Format timestamp to readable string
   const formatTimestamp = (timestamp: number) => {
     if (!timestamp) return '-';
     try {
@@ -84,7 +91,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         minute: '2-digit',
         second: '2-digit'
       }).format(date);
-    } catch (e) {
+    } catch {
       return new Date(timestamp).toLocaleString();
     }
   };
@@ -93,47 +100,47 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
           />
 
-          {/* Modal Container */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detail-modal-title"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+          >
             <motion.div
               initial={{ scale: 0.94, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 15 }}
               transition={{ type: 'spring', damping: 26, stiffness: 340 }}
-              className="liquid-glass-modal rounded-[32px] w-full max-w-md overflow-hidden pointer-events-auto flex flex-col"
+              className="liquid-glass-modal rounded-[32px] w-full max-w-md overflow-hidden pointer-events-auto flex flex-col border border-black/5 dark:border-white/10"
             >
-              
-              {/* Modal Header Bar */}
               <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-black/5 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className={`p-2 rounded-xl ${isIncome ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-500 border border-rose-500/20'} flex items-center justify-center`}>
                     {isIncome ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
                   </div>
-                  <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">
+                  <span id="detail-modal-title" className="text-xs font-bold text-text-secondary uppercase tracking-widest">
                     {isIncome ? t.titleIncome : t.titleExpense}
                   </span>
                 </div>
                 <button 
+                  type="button"
                   onClick={onClose}
+                  aria-label={lang === 'ID' ? 'Tutup rincian transaksi' : 'Close transaction details'}
                   className="p-1.5 rounded-full hover:bg-slate-100/80 dark:hover:bg-slate-700/60 text-text-secondary hover:text-text-primary transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Modal Content */}
               <div className="p-6 space-y-5">
-                
-                {/* Big Amount Typography */}
                 <div className="text-center py-4 bg-slate-100/70 dark:bg-slate-800/80 rounded-2xl border border-black/5 dark:border-white/10">
                   <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block mb-1">
                     {t.txAmount}
@@ -143,10 +150,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   </h3>
                 </div>
 
-                {/* Metadata Grid */}
                 <div className="space-y-4">
-                  
-                  {/* Description / Keterangan */}
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-text-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
                       <FileText className="w-4 h-4" />
@@ -161,7 +165,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Category */}
                   <div className="flex items-start gap-3">
                     <div className={`w-8 h-8 rounded-lg ${categoryStyle.bgClass} ${categoryStyle.textClass} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                       <CategoryIcon className="w-4 h-4" />
@@ -176,7 +179,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Date */}
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-text-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Calendar className="w-4 h-4" />
@@ -191,10 +193,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Timestamps */}
                   <div className="border-t border-border-custom dark:border-slate-700/50 pt-3.5 mt-2 space-y-2.5">
-                    
-                    {/* Created At */}
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-text-secondary flex items-center gap-1.5 font-medium">
                         <Clock className="w-3.5 h-3.5 text-text-secondary/60" />
@@ -205,7 +204,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                       </span>
                     </div>
 
-                    {/* Updated At */}
                     {transaction.updatedAt && transaction.updatedAt !== transaction.createdAt && (
                       <div className="flex justify-between items-center text-[11px]">
                         <span className="text-text-secondary flex items-center gap-1.5 font-medium">
@@ -217,14 +215,10 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                         </span>
                       </div>
                     )}
-
                   </div>
-
                 </div>
-
               </div>
 
-              {/* Modal Footer Controls */}
               <div className="p-6 pt-0 flex gap-3">
                 <button
                   type="button"
@@ -235,7 +229,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   className="flex-1 py-3 text-xs font-bold rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Edit3 className="w-4 h-4" />
-                  {t.editBtn}
+                  <span>{t.editBtn}</span>
                 </button>
                 <button
                   type="button"
@@ -246,10 +240,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   className="flex-1 py-3 text-xs font-bold rounded-2xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {t.deleteBtn}
+                  <span>{t.deleteBtn}</span>
                 </button>
               </div>
-
             </motion.div>
           </div>
         </>

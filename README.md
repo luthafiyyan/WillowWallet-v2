@@ -53,16 +53,16 @@ Whether you run it in **100% Offline Sandbox Mode** using local browser storage 
 - **Interactive Expense Breakdown**: Donut chart with real-time hover and touch-tap nominal revealing (view exact Rupiah amounts alongside percentages).
 - **Rule of 50/30/20**: Automated allocation breakdown separating *Needs* vs. *Wants*.
 - **Saving Rate & Daily Averages**: Dynamically calculated based on actual elapsed days for the active period.
-- **Automated AI Insights**: Contextual, rule-based financial advice tailored to your spending habits.
+- **Smart Financial Insights**: Contextual, rule-based financial indicators tailored to your spending habits.
 
-### 🎯 3. Category-Based Budget Management
+### 🎯 3. Category Budgets & Real Savings Goals
 - **Expense Ceilings**: Set monthly expenditure limits on specific categories.
 - **Visual Progress & Alerts**: Color-coded progress meters indicating *Safe* (green), *Caution* (amber at 80%), and *Blown* (red over budget) statuses.
-- **Historical Budget Evaluation**: Check budget performance against historical months.
+- **Interactive Savings Goals**: Set tangible financial targets (e.g. Emergency Fund, Education) with target dates and live progress tracking.
 
 ### 💳 4. Bookkeeping & Journaling
 - **Streamlined Transaction Entry**: Record Date, Type (*Income* or *Expense*), Category, Nominal Amount, and Notes in seconds.
-- **Advanced Realtime Search & Filtering**: Filter records by timeframe (Today, Week, Month, Year, All) and type, or search by text description.
+- **Advanced Realtime Search & Multi-Filter**: Filter records by timeframe, category, and flow type, or sort by amount and date.
 - **Audit Trail**: Every record contains immutable timestamps (`createdAt`, `updatedAt`) for tracking edits.
 
 ### 🌐 5. Dual-Engine Architecture
@@ -71,8 +71,8 @@ Whether you run it in **100% Offline Sandbox Mode** using local browser storage 
 
 ### 📁 6. Data Sovereignty & Portability
 - **Spreadsheet CSV Export**: Download complete transaction ledgers formatted for Microsoft Excel and Google Sheets.
-- **Full Database JSON Backup**: Export comprehensive JSON snapshots containing transactions, budgets, and user settings.
-- **Custom Categories**: View, add, and organize personalized spending categories directly from the Profile tab.
+- **Full Database JSON Backup & Restore**: Export comprehensive snapshots or restore your complete ledger at any time.
+- **Custom Categories**: View, add, organize, and manage personalized categories directly from the Profile tab.
 
 ### 📱 7. Premium Mobile & PWA Experience
 - **Installable Native Feel**: Add to Home Screen on iOS, Android, macOS, and Windows with standalone desktop/mobile shell support.

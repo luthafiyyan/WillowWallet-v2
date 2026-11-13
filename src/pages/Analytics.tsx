@@ -6,7 +6,7 @@ import {
   TrendingDown, 
   ArrowRightLeft, 
   Calendar,
-  Sparkles,
+  Lightbulb,
   HelpCircle,
   Plus,
   Trash2,
@@ -549,7 +549,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         </button>
       </div>
 
-      {/* --- TRENDS ANALYTICS VIEW --- */}
+      {/* Trends analytics view */}
       {activeSubTab === 'trends' && (
         <div className="space-y-6">
           
@@ -885,10 +885,12 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             {/* Right Column: AI Insights & Quick Stats (Takes 5/12 cols) */}
             <div className="lg:col-span-5 space-y-6">
               
-              {/* AI Automated Smart Insights */}
+              {/* Smart Financial Insights */}
               <div className="liquid-glass-card p-5 rounded-[28px] border border-primary/25 space-y-3">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-5 h-5 text-primary dark:text-emerald-400" />
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 dark:bg-emerald-500/20 text-primary dark:text-emerald-400 flex items-center justify-center">
+                    <Lightbulb className="w-4.5 h-4.5" />
+                  </div>
                   <h4 className="text-sm font-bold text-primary dark:text-emerald-400">
                     {t.smartInsights}
                   </h4>
@@ -911,7 +913,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         </div>
       )}
 
-      {/* --- BUDGET MANAGER VIEW --- */}
+      {/* Budget manager view */}
       {activeSubTab === 'budgets' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           

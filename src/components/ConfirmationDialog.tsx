@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { APP_TRANSLATIONS } from '../utils/lang';
@@ -28,49 +28,65 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   const resolvedCancel = cancelText || t.cancelBtn;
   const resolvedConfirm = confirmText || t.confirmBtn;
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
           />
 
-          {/* Dialog Card */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-message"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+          >
             <motion.div
-              initial={{ scale: 0.92, opacity: 0 }}
+              initial={{ scale: 0.94, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
+              exit={{ scale: 0.94, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="liquid-glass-modal rounded-3xl p-6 max-w-sm w-full pointer-events-auto"
+              className="liquid-glass-modal rounded-3xl p-6 max-w-sm w-full pointer-events-auto border border-black/5 dark:border-white/10"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-rose-500">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/20 flex items-center justify-center text-rose-500 flex-shrink-0">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
-                <h4 className="text-lg font-bold text-text-primary dark:text-slate-100">
+                <h4 id="confirm-dialog-title" className="text-lg font-bold text-text-primary dark:text-slate-100">
                   {title}
                 </h4>
               </div>
 
-              <p className="text-sm text-text-secondary dark:text-slate-300 mb-6 leading-relaxed">
+              <p id="confirm-dialog-message" className="text-sm text-text-secondary dark:text-slate-300 mb-6 leading-relaxed">
                 {message}
               </p>
 
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={onClose}
                   className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all active:scale-98 cursor-pointer"
                 >
                   {resolvedCancel}
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     onConfirm();
                     onClose();
@@ -78,7 +94,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                   className="flex-1 py-3 text-sm font-semibold rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white shadow-lg shadow-rose-500/25 border border-white/20 transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {resolvedConfirm}
+                  <span>{resolvedConfirm}</span>
                 </button>
               </div>
             </motion.div>

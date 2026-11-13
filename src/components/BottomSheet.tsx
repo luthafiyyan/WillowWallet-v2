@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, MessageSquare, Plus, Check } from 'lucide-react';
+import { X, Calendar, MessageSquare, Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Transaction, TransactionType } from '../types';
 import { APP_TRANSLATIONS } from '../utils/lang';
@@ -34,7 +34,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const [date, setDate] = useState<string>('');
   const [description, setDescription] = useState<string>('');
 
-  // Handle defaults and editing pre-fills
   useEffect(() => {
     if (isOpen) {
       if (editingTransaction) {
@@ -46,7 +45,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       } else {
         setType('expense');
         setAmount('');
-        // Pick first category or default
         setCategory(categories[0] || 'Lainnya');
         setDate(new Date().toISOString().split('T')[0]);
         setDescription('');
@@ -54,10 +52,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     }
   }, [isOpen, editingTransaction, categories]);
 
-  // Adjust default category based on type (pemasukan vs pengeluaran standard filters can also be applied if wanted, but having standard dynamic dropdown works)
   useEffect(() => {
     if (!editingTransaction && isOpen && categories.length > 0) {
-      // Find suitable default category
       if (type === 'income') {
         const defaultIncome = categories.find(c => ['Gaji', 'Investasi', 'Sampingan', 'Pendapatan'].includes(c));
         if (defaultIncome) setCategory(defaultIncome);
@@ -68,11 +64,21 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     }
   }, [type, editingTransaction, isOpen, categories]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount.replace(/[^0-9.]/g, ''));
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      return; // Validation handled in parent or here
+      return;
     }
     onSubmit({
       type,
@@ -84,7 +90,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     onClose();
   };
 
-  // Helper to format currency preview inside the sheet input
   const formatPreview = (val: string) => {
     const num = parseFloat(val);
     if (isNaN(num)) return 'Rp 0';
@@ -99,169 +104,161 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-center items-end"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-center items-end"
           />
 
-          {/* Bottom Sheet Container */}
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="fixed bottom-0 left-0 right-0 z-50 liquid-glass-modal rounded-t-[36px] max-w-md mx-auto overflow-hidden flex flex-col max-h-[92vh] pb-safe"
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bottomsheet-title"
+            className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center"
           >
-            {/* Header notch */}
-            <div className="w-12 h-1.5 bg-black/15 dark:bg-white/20 rounded-full mx-auto mt-4 mb-2 flex-shrink-0" />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 26, stiffness: 240 }}
+              className="w-full max-w-md liquid-glass-modal rounded-t-[36px] overflow-hidden flex flex-col max-h-[92vh] pb-safe pointer-events-auto border border-black/5 dark:border-white/10"
+            >
+              <div className="w-12 h-1.5 bg-black/15 dark:bg-white/20 rounded-full mx-auto mt-4 mb-2 flex-shrink-0" />
 
-            {/* Header title */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-black/5 dark:border-white/10 flex-shrink-0">
-              <h3 className="text-lg font-bold text-text-primary dark:text-slate-100">
-                {editingTransaction ? t.editTitle : t.addTitle}
-              </h3>
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-full bg-slate-100/80 dark:bg-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Form Scrollable Section */}
-            <form onSubmit={handleSave} className="flex-grow overflow-y-auto px-6 py-4 space-y-5">
-              
-              {/* Type Toggle Segmented Control */}
-              <div className="bg-slate-100/80 dark:bg-slate-900/60 p-1 rounded-2xl flex gap-1 border border-black/5 dark:border-white/10">
+              <div className="flex items-center justify-between px-6 py-3 border-b border-black/5 dark:border-white/10 flex-shrink-0">
+                <h3 id="bottomsheet-title" className="text-lg font-bold text-text-primary dark:text-slate-100">
+                  {editingTransaction ? t.editTitle : t.addTitle}
+                </h3>
                 <button
                   type="button"
-                  onClick={() => setType('expense')}
-                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
-                    type === 'expense'
-                      ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25'
-                      : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
-                  }`}
+                  onClick={onClose}
+                  aria-label={lang === 'ID' ? 'Tutup form transaksi' : 'Close transaction form'}
+                  className="p-1.5 rounded-full bg-slate-100/80 dark:bg-slate-700/60 text-text-secondary hover:text-text-primary dark:hover:text-slate-100 transition-all cursor-pointer"
                 >
-                  {t.expense}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setType('income')}
-                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
-                    type === 'income'
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/25'
-                      : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
-                  }`}
-                >
-                  {t.income}
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Amount Input */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  {t.amount}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-text-secondary">
-                    Rp
-                  </span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    required
-                    placeholder="0"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-4 rounded-2xl text-xl font-bold border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100"
-                  />
+              <form onSubmit={handleSave} className="flex-grow overflow-y-auto px-6 py-4 space-y-5">
+                <div className="bg-slate-100/80 dark:bg-slate-900/60 p-1 rounded-2xl flex gap-1 border border-black/5 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setType('expense')}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
+                      type === 'expense'
+                        ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25'
+                        : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {t.expense}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setType('income')}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
+                      type === 'income'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/25'
+                        : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {t.income}
+                  </button>
                 </div>
-                <p className="text-xs text-text-secondary italic pl-1">
-                  Preview: {formatPreview(amount)}
-                </p>
-              </div>
 
-              {/* Category Dropdown */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  {t.category}
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-slate-100/70 dark:bg-slate-800/80 px-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 16px center',
-                    backgroundSize: '16px'
-                  }}
+                <div className="space-y-2">
+                  <label htmlFor="tx-amount" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                    {t.amount}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-text-secondary">
+                      Rp
+                    </span>
+                    <input
+                      id="tx-amount"
+                      type="number"
+                      inputMode="numeric"
+                      required
+                      placeholder="0"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-4 rounded-2xl text-xl font-bold border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100"
+                    />
+                  </div>
+                  <p className="text-xs text-text-secondary italic pl-1">
+                    Preview: {formatPreview(amount)}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="tx-category" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                    {t.category}
+                  </label>
+                  <select
+                    id="tx-category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 px-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 16px center',
+                      backgroundSize: '16px'
+                    }}
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="tx-date" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                    {t.date}
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary pointer-events-none" />
+                    <input
+                      id="tx-date"
+                      type="date"
+                      required
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="tx-desc" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                    {t.description}
+                  </label>
+                  <div className="relative">
+                    <MessageSquare className="absolute left-4 top-4.5 w-5 h-5 text-text-secondary pointer-events-none" />
+                    <textarea
+                      id="tx-desc"
+                      placeholder={t.descPlaceholder}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 min-h-[80px]"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!amount || parseFloat(amount) <= 0}
+                  className="w-full liquid-pill-active py-4 rounded-2xl text-base font-bold shadow-lg shadow-emerald-600/25 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {lang === 'EN' && cat === 'Makanan' ? 'Food & Drink' :
-                       lang === 'EN' && cat === 'Transportasi' ? 'Transportation' :
-                       lang === 'EN' && cat === 'Belanja' ? 'Shopping' :
-                       lang === 'EN' && cat === 'Hiburan' ? 'Entertainment' :
-                       lang === 'EN' && cat === 'Tagihan' ? 'Bills & Utilities' :
-                       lang === 'EN' && cat === 'Lainnya' ? 'Others' :
-                       lang === 'EN' && cat === 'Gaji' ? 'Salary' :
-                       lang === 'EN' && cat === 'Investasi' ? 'Investment' :
-                       lang === 'EN' && cat === 'Sampingan' ? 'Side Hustle' : cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Date Selector */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  {t.date}
-                </label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
-                  <input
-                    type="date"
-                    required
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              {/* Description Input */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                  {t.description}
-                </label>
-                <div className="relative">
-                  <MessageSquare className="absolute left-4 top-4.5 w-5 h-5 text-text-secondary" />
-                  <textarea
-                    placeholder={t.descPlaceholder}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 min-h-[80px]"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={!amount || parseFloat(amount) <= 0}
-                className="w-full liquid-pill-active py-4 rounded-2xl text-base font-bold shadow-lg shadow-emerald-600/25 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Check className="w-5 h-5" />
-                {editingTransaction ? (lang === 'ID' ? 'Simpan Perubahan' : 'Save Changes') : t.saveBtn}
-              </button>
-
-            </form>
-          </motion.div>
+                  <Check className="w-5 h-5" />
+                  <span>{editingTransaction ? (lang === 'ID' ? 'Simpan Perubahan' : 'Save Changes') : t.saveBtn}</span>
+                </button>
+              </form>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
