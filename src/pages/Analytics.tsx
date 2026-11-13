@@ -599,13 +599,15 @@ export const Analytics: React.FC<AnalyticsProps> = ({
             <div className="liquid-glass-card p-4.5 rounded-[22px] flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 tracking-wider uppercase">
-                  {t.avgDaily}
+                  {t.avgDaily || (lang === 'ID' ? 'Rata-rata Harian' : 'Daily Average')}
                 </span>
                 <h4 className="text-lg font-bold text-amber-600 dark:text-amber-400 line-clamp-1">
                   {formatRupiah(stats.averageDailySpending)}
                 </h4>
                 <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold uppercase">
-                  {isCurrentMonth ? t.avgDailySubtitle : (lang === 'ID' ? `Rerata per hari (${daysInSelectedMonth} hari)` : `Daily avg (${daysInSelectedMonth} days)`)}
+                  {isCurrentMonth 
+                    ? (t.avgDailySubtitle || (lang === 'ID' ? 'Rerata pengeluaran per hari' : 'Daily spending average'))
+                    : (lang === 'ID' ? `Rerata per hari (${daysInSelectedMonth} hari)` : `Daily avg (${daysInSelectedMonth} days)`)}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center flex-shrink-0 ml-3">
