@@ -2,12 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   SlidersHorizontal, 
-  TrendingUp,
-  TrendingDown,
-  X,
-  Edit3,
-  Trash2,
-  ArrowUpDown
+  TrendingUp, 
+  TrendingDown, 
+  X, 
+  Edit3, 
+  Trash2, 
+  Filter,
+  Calendar
 } from 'lucide-react';
 import { Transaction, TransactionType } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
@@ -40,6 +41,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOrder>('newest');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const getLocalizedCategoryName = (catName: string) => {
     if (lang === 'ID') return catName;
@@ -126,6 +128,63 @@ export const Transactions: React.FC<TransactionsProps> = ({
     return result;
   }, [transactions, search, timeFilter, typeFilter, selectedCategory, sortBy]);
 
+  // Group filtered transactions by date with daily subtotals
+  const groupedTransactions = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const groups: {
+      date: string;
+      label: string;
+      items: Transaction[];
+      totalIncome: number;
+      totalExpense: number;
+    }[] = [];
+
+    const groupMap = new Map<string, typeof groups[0]>();
+
+    filteredTransactions.forEach((tx) => {
+      const dateKey = tx.date;
+      if (!groupMap.has(dateKey)) {
+        let label = dateKey;
+        if (dateKey === todayStr) {
+          label = t.todayHeader || (lang === 'ID' ? 'Hari Ini' : 'Today');
+        } else if (dateKey === yesterdayStr) {
+          label = t.yesterdayHeader || (lang === 'ID' ? 'Kemarin' : 'Yesterday');
+        } else {
+          try {
+            const [y, m, d] = dateKey.split('-');
+            const monthsID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const monthsEN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthName = lang === 'ID' ? monthsID[parseInt(m, 10) - 1] : monthsEN[parseInt(m, 10) - 1];
+            label = `${parseInt(d, 10)} ${monthName} ${y}`;
+          } catch {
+            label = dateKey;
+          }
+        }
+
+        const newGroup = {
+          date: dateKey,
+          label,
+          items: [],
+          totalIncome: 0,
+          totalExpense: 0,
+        };
+        groupMap.set(dateKey, newGroup);
+        groups.push(newGroup);
+      }
+
+      const g = groupMap.get(dateKey)!;
+      g.items.push(tx);
+      if (tx.type === 'income') g.totalIncome += tx.amount;
+      else g.totalExpense += tx.amount;
+    });
+
+    return groups;
+  }, [filteredTransactions, lang, t]);
+
   const { filteredIncome, filteredExpense } = useMemo(() => {
     let inc = 0;
     let exp = 0;
@@ -157,15 +216,22 @@ export const Transactions: React.FC<TransactionsProps> = ({
     return Array.from(set).sort();
   }, [categories, transactions]);
 
+  const hasActiveFilters = search || timeFilter !== 'all' || typeFilter !== 'all' || selectedCategory !== 'all' || sortBy !== 'newest';
+
   return (
     <div className="space-y-5 pb-28">
-      <div>
-        <h2 className="text-xl font-bold text-text-primary dark:text-slate-100">
-          {t.title}
-        </h2>
-        <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">
-          {t.subtitle}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-text-primary dark:text-slate-100">
+            {t.title}
+          </h2>
+          <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">
+            {t.subtitle}
+          </p>
+        </div>
+        <div className="text-xs font-semibold px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-text-secondary dark:text-slate-300 border border-slate-200 dark:border-slate-700 tabular-nums">
+          {filteredTransactions.length} {t.showingCount || 'transaksi'}
+        </div>
       </div>
 
       <div className="relative">
@@ -193,11 +259,145 @@ export const Transactions: React.FC<TransactionsProps> = ({
         )}
       </div>
 
+      {/* Mobile-First Fast Filter Bar (Horizontal scrollable chips) */}
+      <div className="lg:hidden space-y-3">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-all border ${
+              hasActiveFilters 
+                ? 'bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:text-emerald-400' 
+                : 'bg-white dark:bg-slate-800 text-text-secondary border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <Filter className="w-3.5 h-3.5" />
+            <span>{t.filterOptions || 'Filter & Urutkan'}</span>
+            {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-primary" />}
+          </button>
+
+          {(['all', 'today', 'week', 'month'] as TimeFilter[]).map((range) => {
+            const labelMap: Record<TimeFilter, string> = {
+              all: t.allRanges,
+              today: t.today,
+              week: t.thisWeek,
+              month: t.thisMonth,
+              year: t.thisYear
+            };
+            return (
+              <button
+                key={range}
+                type="button"
+                onClick={() => setTimeFilter(range)}
+                className={`px-3 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all cursor-pointer ${
+                  timeFilter === range
+                    ? 'liquid-pill-active'
+                    : 'bg-white dark:bg-slate-800 text-text-secondary border border-slate-200 dark:border-slate-700 hover:text-text-primary'
+                }`}
+              >
+                {labelMap[range]}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Quick Type Pills for Mobile */}
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => setTypeFilter('all')}
+            className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              typeFilter === 'all'
+                ? 'bg-slate-200/90 dark:bg-slate-700 text-text-primary dark:text-slate-100 shadow-xs'
+                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-text-secondary'
+            }`}
+          >
+            {t.allTypes}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTypeFilter('income')}
+            className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${
+              typeFilter === 'income'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-text-secondary'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>{t.income}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTypeFilter('expense')}
+            className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer ${
+              typeFilter === 'expense'
+                ? 'bg-rose-500/15 text-rose-500 dark:text-rose-400 border border-rose-500/30'
+                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-text-secondary'
+            }`}
+          >
+            <TrendingDown className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>{t.expense}</span>
+          </button>
+        </div>
+
+        {/* Collapsible Advanced Filters on Mobile */}
+        {showMobileFilters && (
+          <div className="liquid-glass-card p-4 rounded-2xl space-y-3 border border-slate-200 dark:border-slate-700">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label htmlFor="tx-category-filter-mobile" className="block text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
+                  {t.categoryFilter}
+                </label>
+                <select
+                  id="tx-category-filter-mobile"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs font-semibold text-text-primary dark:text-slate-100 focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="all">{t.allCategories}</option>
+                  {availableCategories.map((c) => (
+                    <option key={c} value={c}>{getLocalizedCategoryName(c)}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="tx-sort-select-mobile" className="block text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
+                  {t.sortBy}
+                </label>
+                <select
+                  id="tx-sort-select-mobile"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOrder)}
+                  className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs font-semibold text-text-primary dark:text-slate-100 focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="newest">{t.sortNewest}</option>
+                  <option value="oldest">{t.sortOldest}</option>
+                  <option value="highest">{t.sortHighest}</option>
+                  <option value="lowest">{t.sortLowest}</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs text-text-secondary hover:text-primary font-semibold underline cursor-pointer"
+              >
+                {t.resetFiltersBtn}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-4 space-y-4">
+        {/* Desktop Filter Sidebar */}
+        <div className="hidden lg:block lg:col-span-4 space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <label htmlFor="tx-category-filter" className="block text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
+              <label htmlFor="tx-category-filter" className="block text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
                 {t.categoryFilter}
               </label>
               <select
@@ -214,7 +414,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="tx-sort-select" className="block text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
+              <label htmlFor="tx-sort-select" className="block text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
                 {t.sortBy}
               </label>
               <select
@@ -232,10 +432,10 @@ export const Transactions: React.FC<TransactionsProps> = ({
           </div>
 
           <div className="space-y-2">
-            <span className="block text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
+            <span className="block text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
               {t.timeRange}
             </span>
-            <div className="grid grid-cols-3 sm:grid-cols-5 lg:flex lg:flex-col gap-1.5 liquid-glass-card p-1.5 sm:p-2 rounded-2xl">
+            <div className="flex flex-col gap-1.5 liquid-glass-card p-2 rounded-2xl">
               {(['all', 'today', 'week', 'month', 'year'] as TimeFilter[]).map((range) => {
                 const labelMap: Record<TimeFilter, string> = {
                   all: t.allRanges,
@@ -249,7 +449,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                     key={range}
                     type="button"
                     onClick={() => setTimeFilter(range)}
-                    className={`text-center lg:text-left px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold sm:font-semibold rounded-xl transition-all cursor-pointer ${
+                    className={`text-left px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                       timeFilter === range
                         ? 'liquid-pill-active'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
@@ -263,14 +463,14 @@ export const Transactions: React.FC<TransactionsProps> = ({
           </div>
 
           <div className="space-y-2">
-            <span className="block text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
+            <span className="block text-xs font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider pl-1">
               {t.flowType}
             </span>
-            <div className="grid grid-cols-3 lg:flex lg:flex-col gap-2">
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setTypeFilter('all')}
-                className={`w-full py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                className={`w-full py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   typeFilter === 'all'
                     ? 'bg-slate-200/90 dark:bg-slate-700 text-text-primary dark:text-slate-100 shadow-xs'
                     : 'liquid-glass-card text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
@@ -281,7 +481,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
               <button
                 type="button"
                 onClick={() => setTypeFilter('income')}
-                className={`w-full py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
+                className={`w-full py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   typeFilter === 'income'
                     ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                     : 'liquid-glass-card text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
@@ -293,7 +493,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
               <button
                 type="button"
                 onClick={() => setTypeFilter('expense')}
-                className={`w-full py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
+                className={`w-full py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   typeFilter === 'expense'
                     ? 'bg-rose-500/15 text-rose-500 dark:text-rose-400 border border-rose-500/30'
                     : 'liquid-glass-card text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
@@ -307,28 +507,49 @@ export const Transactions: React.FC<TransactionsProps> = ({
 
           <div className="grid grid-cols-2 gap-3 liquid-glass-card p-4 rounded-2xl">
             <div>
-              <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+              <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                 {t.filterIncome}
               </p>
-              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                 +{formatRupiah(filteredIncome)}
               </p>
             </div>
             <div className="border-l border-black/5 dark:border-white/10 pl-4">
-              <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+              <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">
                 {t.filterExpense}
               </p>
-              <p className="text-sm font-bold text-rose-500 dark:text-rose-400 mt-0.5">
+              <p className="text-sm font-bold text-rose-500 dark:text-rose-400 mt-0.5 tabular-nums">
                 -{formatRupiah(filteredExpense)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-8 space-y-3">
+        {/* Transactions Feed - Grouped by Date */}
+        <div className="w-full lg:col-span-8 space-y-4">
+          {/* Quick Cashflow Summary for Mobile */}
+          <div className="grid grid-cols-2 gap-3 liquid-glass-card p-3 sm:p-4 rounded-2xl lg:hidden">
+            <div>
+              <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
+                {t.filterIncome}
+              </p>
+              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
+                +{formatRupiah(filteredIncome)}
+              </p>
+            </div>
+            <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
+              <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
+                {t.filterExpense}
+              </p>
+              <p className="text-sm font-bold text-rose-500 dark:text-rose-400 mt-0.5 tabular-nums">
+                -{formatRupiah(filteredExpense)}
+              </p>
+            </div>
+          </div>
+
           {filteredTransactions.length === 0 ? (
             <div className="liquid-glass-card p-12 rounded-[28px] border border-dashed border-slate-300 dark:border-slate-700/80 text-center flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-750 flex items-center justify-center text-text-secondary mb-1">
+              <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-text-secondary mb-1">
                 <SlidersHorizontal className="w-6 h-6 text-text-secondary/60" />
               </div>
               <h3 className="text-sm font-bold text-text-primary dark:text-slate-100">
@@ -346,73 +567,109 @@ export const Transactions: React.FC<TransactionsProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-2.5 sm:gap-3" role="list">
-              {filteredTransactions.map((tx) => {
-                const style = getCategoryStyle(tx.category);
+            <div className="space-y-5" role="list">
+              {groupedTransactions.map((group) => {
                 return (
-                  <div 
-                    key={tx.id}
-                    role="listitem"
-                    tabIndex={0}
-                    onClick={() => onViewTransaction(tx)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onViewTransaction(tx);
-                      }
-                    }}
-                    className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 group cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
-                    aria-label={`${tx.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} ${formatRupiah(tx.amount)} ${tx.category}`}
-                  >
-                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0 shadow-xs border border-white/40 dark:border-white/5`}>
-                        <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
+                  <div key={group.date} className="space-y-2">
+                    {/* Date Section Header with Daily Subtotal */}
+                    <div className="flex items-center justify-between px-2 pt-1">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-text-secondary" />
+                        <h3 className="text-xs font-bold text-text-primary dark:text-slate-200">
+                          {group.label}
+                        </h3>
+                        <span className="text-[11px] text-text-secondary dark:text-slate-400 font-medium">
+                          ({group.items.length})
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-bold text-text-primary dark:text-slate-100 line-clamp-1">
-                          {tx.description || getLocalizedCategoryName(tx.category)}
-                        </h4>
-                        <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
-                          <span className="text-[10px] font-semibold text-text-secondary dark:text-slate-400">
-                            {getLocalizedCategoryName(tx.category)}
+                      <div className="text-xs font-bold tabular-nums flex items-center gap-2">
+                        {group.totalIncome > 0 && (
+                          <span className="text-emerald-600 dark:text-emerald-400">
+                            +{formatRupiah(group.totalIncome)}
                           </span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                          <span className="text-[10px] text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
-                            {tx.date}
+                        )}
+                        {group.totalExpense > 0 && (
+                          <span className="text-rose-500 dark:text-rose-400">
+                            -{formatRupiah(group.totalExpense)}
                           </span>
-                        </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-3 flex-shrink-0">
-                      <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap ${tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                        {tx.type === 'income' ? '+' : '-'} {formatRupiah(tx.amount)}
-                      </span>
-                      
-                      <div className="flex gap-1">
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditTransaction(tx);
-                          }}
-                          className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
-                          aria-label={lang === 'ID' ? 'Edit transaksi' : 'Edit transaction'}
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteTransaction(tx.id);
-                          }}
-                          className="p-1.5 sm:p-2 rounded-xl bg-slate-100/80 dark:bg-slate-700/60 border border-black/5 dark:border-white/5 text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
-                          aria-label={lang === 'ID' ? 'Hapus transaksi' : 'Delete transaction'}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    {/* Group Items */}
+                    <div className="grid grid-cols-1 gap-2">
+                      {group.items.map((tx) => {
+                        const style = getCategoryStyle(tx.category);
+                        const isIncome = tx.type === 'income';
+
+                        return (
+                          <div 
+                            key={tx.id}
+                            role="listitem"
+                            tabIndex={0}
+                            onClick={() => onViewTransaction(tx)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onViewTransaction(tx);
+                              }
+                            }}
+                            className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 group cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+                            aria-label={`${tx.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} ${formatRupiah(tx.amount)} ${tx.category}`}
+                          >
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${style.bgClass} ${style.textClass} flex items-center justify-center flex-shrink-0 shadow-xs border border-white/40 dark:border-white/5`}>
+                                <style.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-xs sm:text-sm font-bold text-text-primary dark:text-slate-100 line-clamp-1">
+                                  {tx.description || getLocalizedCategoryName(tx.category)}
+                                </h4>
+                                <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
+                                  <span className="text-xs font-semibold text-text-secondary dark:text-slate-400">
+                                    {getLocalizedCategoryName(tx.category)}
+                                  </span>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                  <span className="text-xs text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
+                                    {tx.date}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-3 flex-shrink-0">
+                              <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap tabular-nums ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                                {isIncome ? '+' : '-'} {formatRupiah(tx.amount)}
+                              </span>
+                              
+                              <div className="flex gap-1">
+                                <button 
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEditTransaction(tx);
+                                  }}
+                                  className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-text-secondary hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
+                                  aria-label={lang === 'ID' ? 'Edit transaksi' : 'Edit transaction'}
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteTransaction(tx.id);
+                                  }}
+                                  className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                                  aria-label={lang === 'ID' ? 'Hapus transaksi' : 'Delete transaction'}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

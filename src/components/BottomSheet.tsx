@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, Calendar, MessageSquare, Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Transaction, TransactionType } from '../types';
 import { APP_TRANSLATIONS } from '../utils/lang';
+import { getCategoryStyle } from '../utils/helpers';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -33,6 +34,48 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const [category, setCategory] = useState<string>('');
   const [date, setDate] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const yesterdayStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  }, []);
+
+  const getLocalizedCategoryName = (catName: string) => {
+    if (lang === 'ID') return catName;
+    const catMap: Record<string, string> = {
+      'Makanan': 'Food & Drink',
+      'Makanan & Minuman': 'Food & Drink',
+      'Transportasi': 'Transportation',
+      'Belanja': 'Shopping',
+      'Hiburan': 'Entertainment',
+      'Tagihan': 'Bills & Utilities',
+      'Tagihan & Utilitas': 'Bills & Utilities',
+      'Kesehatan': 'Health',
+      'Pendidikan': 'Education',
+      'Lainnya': 'Others',
+      'Gaji': 'Salary',
+      'Investasi': 'Investment',
+      'Sampingan': 'Side Hustle'
+    };
+    return catMap[catName] || catName;
+  };
+
+  const filteredCategories = useMemo(() => {
+    if (type === 'income') {
+      const incomeSpecific = categories.filter(c => ['Gaji', 'Investasi', 'Sampingan', 'Pendapatan', 'Bonus', 'Salary', 'Investment', 'Side Hustle'].includes(c));
+      return incomeSpecific.length > 0 ? incomeSpecific : categories;
+    } else {
+      const expenseSpecific = categories.filter(c => !['Gaji', 'Investasi', 'Sampingan', 'Pendapatan', 'Bonus', 'Salary', 'Investment', 'Side Hustle'].includes(c));
+      return expenseSpecific.length > 0 ? expenseSpecific : categories;
+    }
+  }, [categories, type]);
+
+  const handleAddAmount = (addVal: number) => {
+    const current = parseFloat(amount.replace(/[^0-9.]/g, '')) || 0;
+    setAmount((current + addVal).toString());
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -183,42 +226,108 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       placeholder="0"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-4 rounded-2xl text-xl font-bold border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100"
+                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-xl font-bold border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 tabular-nums"
                     />
                   </div>
+
+                  {/* Quick amount chips */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                    {[10000, 20000, 50000, 100000, 500000].map((quickVal) => (
+                      <button
+                        key={quickVal}
+                        type="button"
+                        onClick={() => handleAddAmount(quickVal)}
+                        className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-text-secondary hover:text-text-primary dark:hover:text-slate-200 hover:border-primary transition-all whitespace-nowrap cursor-pointer active:scale-95"
+                      >
+                        +{quickVal >= 1000 ? `${quickVal / 1000}rb` : quickVal}
+                      </button>
+                    ))}
+                    {amount && (
+                      <button
+                        type="button"
+                        onClick={() => setAmount('')}
+                        className="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 text-xs font-bold hover:bg-rose-500/20 transition-all whitespace-nowrap cursor-pointer active:scale-95"
+                      >
+                        {t.resetAmount || 'Hapus'}
+                      </button>
+                    )}
+                  </div>
+
                   <p className="text-xs text-text-secondary italic pl-1">
                     Preview: {formatPreview(amount)}
                   </p>
                 </div>
 
+                {/* Visual Category Selector Grid */}
                 <div className="space-y-2">
-                  <label htmlFor="tx-category" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                    {t.category}
-                  </label>
-                  <select
-                    id="tx-category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-slate-100/70 dark:bg-slate-800/80 px-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 appearance-none cursor-pointer"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 16px center',
-                      backgroundSize: '16px'
-                    }}
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                      {t.category}
+                    </label>
+                    <span className="text-xs font-bold text-primary dark:text-emerald-400">
+                      {getLocalizedCategoryName(category)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {filteredCategories.map((cat) => {
+                      const isSelected = category === cat;
+                      const catStyle = getCategoryStyle(cat);
+                      const IconComp = catStyle.icon;
+
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setCategory(cat)}
+                          className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer border ${
+                            isSelected
+                              ? 'bg-primary/10 border-primary text-primary dark:bg-primary/25 dark:text-emerald-300 dark:border-emerald-400 font-bold shadow-xs'
+                              : 'bg-slate-100/70 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-text-secondary hover:border-slate-300 dark:hover:border-slate-600'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-xl ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center`}>
+                            <IconComp className="w-4 h-4 stroke-[2.2]" />
+                          </div>
+                          <span className="text-xs leading-tight line-clamp-1">
+                            {getLocalizedCategoryName(cat)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
+                {/* Date selection with Today / Yesterday shortcuts */}
                 <div className="space-y-2">
-                  <label htmlFor="tx-date" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
-                    {t.date}
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="tx-date" className="block text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                      {t.date}
+                    </label>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setDate(todayStr)}
+                        className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          date === todayStr
+                            ? 'bg-primary text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 text-text-secondary border border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        {t.todayOption || 'Hari Ini'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDate(yesterdayStr)}
+                        className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          date === yesterdayStr
+                            ? 'bg-primary text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 text-text-secondary border border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        {t.yesterdayOption || 'Kemarin'}
+                      </button>
+                    </div>
+                  </div>
                   <div className="relative">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary pointer-events-none" />
                     <input
@@ -227,7 +336,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       required
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3.5 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 cursor-pointer"
+                      className="w-full bg-slate-100/70 dark:bg-slate-800/80 pl-12 pr-4 py-3 rounded-2xl text-sm font-medium border border-black/5 dark:border-white/10 focus:border-primary focus:outline-none transition-all text-text-primary dark:text-slate-100 cursor-pointer"
                     />
                   </div>
                 </div>

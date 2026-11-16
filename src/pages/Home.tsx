@@ -1,15 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Plus, 
   ArrowRight, 
   HelpCircle,
   FileDown,
-  PieChart,
   Edit3,
   Trash2,
   AlertCircle,
   Target,
-  SlidersHorizontal
+  Eye,
+  EyeOff,
+  ArrowLeftRight,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { Transaction, Budget, AppUser, SavingGoal } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
@@ -80,20 +83,45 @@ export const Home: React.FC<HomeProps> = ({
     return catMap[catName] || catName;
   };
 
-  const { totalIncome, totalExpense, activeBalance } = useMemo(() => {
+  const [isBalanceHidden, setIsBalanceHidden] = useState<boolean>(() => {
+    return localStorage.getItem('WILLOW_HIDE_BALANCE') === 'true';
+  });
+
+  const toggleHideBalance = () => {
+    setIsBalanceHidden((prev) => {
+      const next = !prev;
+      localStorage.setItem('WILLOW_HIDE_BALANCE', String(next));
+      return next;
+    });
+  };
+
+  const { totalIncome, totalExpense, activeBalance, currentMonthIncome, currentMonthExpense } = useMemo(() => {
+    const currentYearMonth = new Date().toISOString().substring(0, 7);
     let inc = 0;
     let exp = 0;
+    let monthInc = 0;
+    let monthExp = 0;
+
     transactions.forEach((tx) => {
       if (tx.type === 'income') {
         inc += tx.amount;
+        if (tx.date.startsWith(currentYearMonth)) {
+          monthInc += tx.amount;
+        }
       } else {
         exp += tx.amount;
+        if (tx.date.startsWith(currentYearMonth)) {
+          monthExp += tx.amount;
+        }
       }
     });
+
     return {
       totalIncome: inc,
       totalExpense: exp,
       activeBalance: inc - exp,
+      currentMonthIncome: monthInc,
+      currentMonthExpense: monthExp,
     };
   }, [transactions]);
 
@@ -178,37 +206,62 @@ export const Home: React.FC<HomeProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-7 space-y-6">
-          <section aria-labelledby="balance-card-heading" className="liquid-glass-emerald p-7 rounded-[32px] text-white flex justify-between items-end relative overflow-hidden transition-all duration-300">
-            <div className="relative z-10">
-              <p id="balance-card-heading" className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-1">
-                {t.activeBalance}
-              </p>
-              <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-xs">
-                {formatRupiah(activeBalance)}
-              </h2>
-              <div className="mt-5 flex gap-2.5">
-                <span className="px-3 py-1 bg-white/20 border border-white/30 rounded-full text-[10px] font-semibold">
+          <section aria-labelledby="balance-card-heading" className="liquid-glass-emerald p-6 sm:p-7 rounded-[32px] text-white flex flex-col justify-between relative overflow-hidden transition-all duration-300 gap-5">
+            <div className="flex items-start justify-between relative z-10 gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <p id="balance-card-heading" className="text-white/80 text-xs font-semibold uppercase tracking-wider">
+                    {t.activeBalance}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={toggleHideBalance}
+                    className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    aria-label={isBalanceHidden ? t.showBalance : t.hideBalance}
+                    title={isBalanceHidden ? t.showBalance : t.hideBalance}
+                  >
+                    {isBalanceHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-xs tabular-nums">
+                  {isBalanceHidden ? 'Rp ••••••••' : formatRupiah(activeBalance)}
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="px-3 py-1 bg-white/20 border border-white/30 rounded-full text-xs font-bold whitespace-nowrap">
                   {activeBalance >= 0 ? t.surplus : t.deficit}
                 </span>
                 <button
                   type="button"
                   onClick={() => onNavigateTab('analytics')}
-                  className="px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 rounded-full text-[10px] font-semibold cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-white"
+                  className="px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 rounded-full text-xs font-semibold cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-white"
                 >
                   {t.viewDetail}
                 </button>
               </div>
             </div>
 
-            <div className="relative z-10 text-right">
-              <div className="w-11 h-11 bg-white/20 rounded-2xl border border-white/30 flex items-center justify-center mb-6 ml-auto shadow-xs">
-                <svg className="w-5.5 h-5.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
+            <div className="pt-3 border-t border-white/15 flex items-center justify-between text-xs text-white/90 relative z-10 flex-wrap gap-2">
+              <span className="font-semibold text-white/80">
+                {t.thisMonthNet}:
+              </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-200" />
+                  <span className="text-[11px] text-white/80">{t.incomeShort}:</span>
+                  <span className="font-bold tabular-nums">
+                    {isBalanceHidden ? '••••••' : formatRupiah(currentMonthIncome)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <TrendingDown className="w-3.5 h-3.5 text-rose-200" />
+                  <span className="text-[11px] text-white/80">{t.expenseShort}:</span>
+                  <span className="font-bold tabular-nums">
+                    {isBalanceHidden ? '••••••' : formatRupiah(currentMonthExpense)}
+                  </span>
+                </div>
               </div>
-              <p className="text-[10px] text-white/80 tracking-widest font-mono">
-                UID: {user.uid ? user.uid.substring(user.uid.length - 4).toUpperCase() : 'SAND'}
-              </p>
             </div>
           </section>
 
@@ -269,11 +322,11 @@ export const Home: React.FC<HomeProps> = ({
                             {tx.description || getLocalizedCategoryName(tx.category)}
                           </h4>
                           <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
-                            <span className="text-[10px] font-semibold text-text-secondary dark:text-slate-400">
+                            <span className="text-xs font-semibold text-text-secondary dark:text-slate-400">
                               {getLocalizedCategoryName(tx.category)}
                             </span>
                             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                            <span className="text-[10px] text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
+                            <span className="text-xs text-text-secondary dark:text-slate-400 font-medium whitespace-nowrap">
                               {tx.date}
                             </span>
                           </div>
@@ -281,8 +334,10 @@ export const Home: React.FC<HomeProps> = ({
                       </div>
 
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-3 flex-shrink-0">
-                        <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap ${isIncome ? 'text-[#16A34A] dark:text-emerald-400' : 'text-[#EF4444] dark:text-rose-400'}`}>
-                          {isIncome ? '+' : '-'} {formatRupiah(tx.amount)}
+                        <span className={`text-xs sm:text-sm font-extrabold whitespace-nowrap tabular-nums ${isIncome ? 'text-[#16A34A] dark:text-emerald-400' : 'text-[#EF4444] dark:text-rose-400'}`}>
+                          {isBalanceHidden 
+                            ? (isIncome ? '+ Rp ••••••' : '- Rp ••••••')
+                            : `${isIncome ? '+' : '-'} ${formatRupiah(tx.amount)}`}
                         </span>
                         
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -327,39 +382,39 @@ export const Home: React.FC<HomeProps> = ({
               <button 
                 type="button"
                 onClick={onOpenAddTransaction}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+                className="liquid-glass-card liquid-glass-card-interactive p-3 sm:p-3.5 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-[#1B8A5A] dark:text-emerald-400 flex items-center justify-center">
                   <Plus className="w-5 h-5 stroke-[2.5]" />
                 </div>
-                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
+                <span className="text-xs font-bold text-text-primary dark:text-slate-200">
                   {t.quickAdd}
                 </span>
               </button>
 
               <button 
                 type="button"
-                onClick={() => onNavigateTab('analytics')}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={onOpenAddGoal || (() => onNavigateTab('home'))}
+                className="liquid-glass-card liquid-glass-card-interactive p-3 sm:p-3.5 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-[#F59E0B] dark:text-amber-400 flex items-center justify-center">
-                  <SlidersHorizontal className="w-5 h-5 stroke-[2.2]" />
+                <div className="w-10 h-10 rounded-xl bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                  <Target className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
-                  {t.quickBudget}
+                <span className="text-xs font-bold text-text-primary dark:text-slate-200">
+                  {t.quickGoal || 'Target'}
                 </span>
               </button>
 
               <button 
                 type="button"
-                onClick={() => onNavigateTab('analytics')}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => onNavigateTab('transactions')}
+                className="liquid-glass-card liquid-glass-card-interactive p-3 sm:p-3.5 rounded-2xl flex flex-col items-center text-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-xl bg-teal-500/10 dark:bg-teal-500/20 text-[#3AA772] dark:text-teal-400 flex items-center justify-center">
-                  <PieChart className="w-5 h-5 stroke-[2.2]" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <ArrowLeftRight className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
-                  {t.quickInsights}
+                <span className="text-xs font-bold text-text-primary dark:text-slate-200">
+                  {t.quickHistory || 'Riwayat'}
                 </span>
               </button>
 
@@ -367,12 +422,12 @@ export const Home: React.FC<HomeProps> = ({
                 type="button"
                 onClick={handleExportCSV}
                 disabled={transactions.length === 0}
-                className="liquid-glass-card liquid-glass-card-interactive p-3.5 sm:p-4 rounded-2xl flex flex-col items-center text-center gap-2 disabled:opacity-45 disabled:pointer-events-none cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+                className="liquid-glass-card liquid-glass-card-interactive p-3 sm:p-3.5 rounded-2xl flex flex-col items-center text-center gap-2 disabled:opacity-45 disabled:pointer-events-none cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-[#3B82F6] dark:text-blue-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                   <FileDown className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <span className="text-[10px] font-bold text-text-primary dark:text-slate-200">
+                <span className="text-xs font-bold text-text-primary dark:text-slate-200">
                   {t.quickExport}
                 </span>
               </button>
@@ -430,7 +485,7 @@ export const Home: React.FC<HomeProps> = ({
                             style={{ width: `${b.percentage}%` }}
                           />
                         </div>
-                        <p className="text-[10px] text-text-secondary dark:text-slate-400 font-medium">
+                        <p className="text-xs text-text-secondary dark:text-slate-400 font-semibold tabular-nums">
                           {formatRupiah(b.spent)} / {formatRupiah(b.limit)}
                         </p>
                       </div>
@@ -498,13 +553,13 @@ export const Home: React.FC<HomeProps> = ({
                               {goal.title}
                             </h4>
                             {goal.deadline && (
-                              <p className="text-[9px] text-text-secondary dark:text-slate-400 mt-0.5">
+                              <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">
                                 {t.deadline}: {goal.deadline}
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-[10px] font-extrabold text-[#1B8A5A] dark:text-emerald-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-2xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-extrabold text-[#1B8A5A] dark:text-emerald-400 bg-white dark:bg-slate-800 px-2.5 py-0.5 rounded-full shadow-2xs tabular-nums">
                               {pct}%
                             </span>
                             {onDeleteGoal && (
@@ -527,7 +582,7 @@ export const Home: React.FC<HomeProps> = ({
                           />
                         </div>
 
-                        <div className="flex justify-between items-center text-[10px] text-text-secondary dark:text-slate-400 font-medium">
+                        <div className="flex justify-between items-center text-xs text-text-secondary dark:text-slate-400 font-semibold tabular-nums">
                           <span>{formatRupiah(goal.currentAmount)}</span>
                           <span>{t.target}: {formatRupiah(goal.targetAmount)}</span>
                         </div>
