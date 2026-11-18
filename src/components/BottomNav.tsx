@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, BarChart2, ArrowLeftRight, User, ArrowLeftRight as SwapIcon, Plus } from 'lucide-react';
+import { Home, BarChart2, ArrowLeftRight, User, Plus } from 'lucide-react';
 import { APP_TRANSLATIONS } from '../utils/lang';
 
 export type TabId = 'home' | 'analytics' | 'transactions' | 'profile';
@@ -72,7 +72,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               aria-label={lang === 'ID' ? 'Catat Transaksi Baru' : 'Record New Transaction'}
               title={lang === 'ID' ? 'Catat Transaksi Baru' : 'Record New Transaction'}
             >
-              <SwapIcon className="w-5 h-5 stroke-[2.5] group-hover:rotate-45 transition-transform duration-300" />
+              <Plus className="w-6 h-6 stroke-[2.8] group-hover:rotate-90 transition-transform duration-300" />
             </button>
           </div>
 
