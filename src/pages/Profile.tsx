@@ -20,7 +20,7 @@ import {
   X
 } from '../components/icons';
 import { AppUser, Transaction, Budget, SavingGoal, BackupData } from '../types';
-import { formatRupiah } from '../utils/helpers';
+import { formatRupiah, getCategoryStyle } from '../utils/helpers';
 import { APP_TRANSLATIONS } from '../utils/lang';
 
 interface ProfileProps {
@@ -502,24 +502,31 @@ export const Profile: React.FC<ProfileProps> = ({
               </form>
 
               <div className="flex flex-wrap gap-1.5 pt-1 max-h-36 overflow-y-auto no-scrollbar">
-                {categories.map((cat) => (
-                  <div
-                    key={cat}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100/70 dark:bg-slate-800/80 text-text-secondary dark:text-slate-300 text-[10px] font-bold border border-black/5 dark:border-white/10"
-                  >
-                    <span>{cat}</span>
-                    {onDeleteCategory && categories.length > 3 && (
-                      <button
-                        type="button"
-                        onClick={() => onDeleteCategory(cat)}
-                        aria-label={lang === 'ID' ? `Hapus kategori ${cat}` : `Delete category ${cat}`}
-                        className="hover:text-rose-500 transition-colors p-0.5 rounded cursor-pointer"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                {categories.map((cat) => {
+                  const catStyle = getCategoryStyle(cat);
+                  const CatIcon = catStyle.icon;
+                  return (
+                    <div
+                      key={cat}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/80 text-text-secondary dark:text-slate-300 text-[11px] font-bold border border-black/5 dark:border-white/10"
+                    >
+                      <div className={`w-5 h-5 rounded-md ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center shrink-0`}>
+                        <CatIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <span>{cat}</span>
+                      {onDeleteCategory && categories.length > 3 && (
+                        <button
+                          type="button"
+                          onClick={() => onDeleteCategory(cat)}
+                          aria-label={lang === 'ID' ? `Hapus kategori ${cat}` : `Delete category ${cat}`}
+                          className="hover:text-rose-500 transition-colors p-0.5 rounded cursor-pointer ml-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>

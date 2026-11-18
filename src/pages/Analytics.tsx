@@ -550,11 +550,18 @@ export const Analytics: React.FC<AnalyticsProps> = ({
                 const spent = stats.categorySpendMap[b.category] || 0;
                 const pct = b.limit > 0 ? Math.min(100, Math.round((spent / b.limit) * 100)) : 0;
                 const isOver = spent > b.limit;
+                const catStyle = getCategoryStyle(b.category);
+                const CatIcon = catStyle.icon;
 
                 return (
                   <div key={b.id || b.category} className="liquid-glass-card rounded-2xl p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-text-primary dark:text-slate-100">{b.category}</span>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-xl ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center flex-shrink-0`}>
+                          <CatIcon className="w-4.5 h-4.5" />
+                        </div>
+                        <span className="font-bold text-sm text-text-primary dark:text-slate-100 truncate">{b.category}</span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-extrabold ${isOver ? 'text-red-500' : 'text-[#123628] dark:text-[#4ADE80]'}`}>
                           {pct}%

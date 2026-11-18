@@ -72,6 +72,27 @@ import {
   SmartphoneIcon as AnimateSmartphone,
   ActivityIcon as AnimateActivity,
   InfoIcon as AnimateInfo,
+  FlameIcon as AnimateFlame,
+  ReceiptTextIcon as AnimateReceiptText,
+  GamepadIcon as AnimateGamepad,
+  ClapperboardIcon as AnimateClapperboard,
+  MusicIcon as AnimateMusic,
+  PillIcon as AnimatePill,
+  DumbbellIcon as AnimateDumbbell,
+  BookOpenIcon as AnimateBookOpen,
+  PiggyBankIcon as AnimatePiggyBank,
+  LaptopIcon as AnimateLaptop,
+  HandHeartIcon as AnimateHandHeart,
+  UsersIcon as AnimateUsers,
+  StoreIcon as AnimateStore,
+  ShoppingCartIcon as AnimateShoppingCart,
+  BikeIcon as AnimateBike,
+  DropletIcon as AnimateDroplet,
+  DropletsIcon as AnimateDroplets,
+  StethoscopeIcon as AnimateStethoscope,
+  HospitalIcon as AnimateHospital,
+  SchoolIcon as AnimateSchool,
+  BanknoteIcon as AnimateBanknote,
 } from '@animateicons/react/lucide';
 import { HelpCircleIcon as AnimateHelpCircle } from '@animateicons/react/huge';
 
@@ -213,3 +234,26 @@ export const Film = createAnimatedIcon(AnimateFilm, 'Film');
 export const Zap = createAnimatedIcon(AnimateZap, 'Zap');
 export const DollarSign = createAnimatedIcon(AnimateDollarSign, 'DollarSign');
 export const HelpCircle = createAnimatedIcon(AnimateHelpCircle, 'HelpCircle');
+
+// Additional 21st.dev category icons
+export const Flame = createAnimatedIcon(AnimateFlame, 'Flame');
+export const ReceiptText = createAnimatedIcon(AnimateReceiptText, 'ReceiptText');
+export const Gamepad = createAnimatedIcon(AnimateGamepad, 'Gamepad');
+export const Clapperboard = createAnimatedIcon(AnimateClapperboard, 'Clapperboard');
+export const Music = createAnimatedIcon(AnimateMusic, 'Music');
+export const Pill = createAnimatedIcon(AnimatePill, 'Pill');
+export const Dumbbell = createAnimatedIcon(AnimateDumbbell, 'Dumbbell');
+export const BookOpen = createAnimatedIcon(AnimateBookOpen, 'BookOpen');
+export const PiggyBank = createAnimatedIcon(AnimatePiggyBank, 'PiggyBank');
+export const Laptop = createAnimatedIcon(AnimateLaptop, 'Laptop');
+export const HandHeart = createAnimatedIcon(AnimateHandHeart, 'HandHeart');
+export const Users = createAnimatedIcon(AnimateUsers, 'Users');
+export const Store = createAnimatedIcon(AnimateStore, 'Store');
+export const ShoppingCart = createAnimatedIcon(AnimateShoppingCart, 'ShoppingCart');
+export const Bike = createAnimatedIcon(AnimateBike, 'Bike');
+export const Droplet = createAnimatedIcon(AnimateDroplet, 'Droplet');
+export const Droplets = createAnimatedIcon(AnimateDroplets, 'Droplets');
+export const Stethoscope = createAnimatedIcon(AnimateStethoscope, 'Stethoscope');
+export const Hospital = createAnimatedIcon(AnimateHospital, 'Hospital');
+export const School = createAnimatedIcon(AnimateSchool, 'School');
+export const Banknote = createAnimatedIcon(AnimateBanknote, 'Banknote');

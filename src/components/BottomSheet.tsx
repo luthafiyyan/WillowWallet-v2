@@ -279,16 +279,16 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                           key={cat}
                           type="button"
                           onClick={() => setCategory(cat)}
-                          className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer border ${
+                          className={`group p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer border ${
                             isSelected
-                              ? 'bg-primary/10 border-primary text-primary dark:bg-primary/25 dark:text-emerald-300 dark:border-emerald-400 font-bold shadow-xs'
-                              : 'bg-slate-100/70 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-text-secondary hover:border-slate-300 dark:hover:border-slate-600'
+                              ? 'bg-[#123628]/10 border-[#123628] text-[#123628] dark:bg-[#4ADE80]/20 dark:text-[#4ADE80] dark:border-[#4ADE80] font-bold shadow-xs scale-[1.02]'
+                              : 'bg-slate-100/70 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-text-secondary hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02] active:scale-[0.98]'
                           }`}
                         >
-                          <div className={`w-8 h-8 rounded-xl ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center`}>
-                            <IconComp className="w-4 h-4 stroke-[2.2]" />
+                          <div className={`w-9 h-9 rounded-2xl ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
+                            <IconComp className="w-5 h-5" />
                           </div>
-                          <span className="text-xs leading-tight line-clamp-1">
+                          <span className="text-xs leading-tight line-clamp-1 font-medium">
                             {getLocalizedCategoryName(cat)}
                           </span>
                         </button>
