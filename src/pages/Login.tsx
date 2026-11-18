@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle, Globe, ArrowRight } from '../components/icons';
 import { auth } from '../firebase/config';
+import { motion } from 'motion/react';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -41,17 +42,16 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
   };
 
   return (
-    <div className="min-h-screen bg-[#0F2D21] text-white flex flex-col justify-between items-center relative overflow-hidden font-sans select-none px-6 py-6 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#0B2519] via-[#081F15] to-[#04120B] text-white flex flex-col justify-between items-center relative overflow-hidden font-sans select-none px-6 py-5 sm:py-7">
       
-      {/* Background Radial Glow */}
-      <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[520px] h-[520px] rounded-full bg-[#18533C]/40 blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[380px] h-[380px] rounded-full bg-[#2E7A5A]/20 blur-[100px] pointer-events-none" />
+      {/* Subtle Specular Ambient Lighting (Calm & Balanced) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-72 bg-gradient-to-b from-[#18533C]/25 to-transparent blur-3xl pointer-events-none" />
 
-      {/* Top Header: Step Indicator & Language */}
-      <header className="w-full max-w-sm flex items-center justify-between z-10 pt-2">
+      {/* Top Header: Step Indicator & Language Switcher */}
+      <header className="w-full max-w-sm flex items-center justify-between z-10 pt-1">
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold tracking-wider text-white/90">01 / 03</span>
-          <div className="flex items-center gap-1 w-20">
+          <div className="flex items-center gap-1.5 w-20">
             <div className="h-1 flex-1 bg-white rounded-full"></div>
             <div className="h-1 flex-1 bg-white/25 rounded-full"></div>
             <div className="h-1 flex-1 bg-white/25 rounded-full"></div>
@@ -62,7 +62,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
           <button
             type="button"
             onClick={() => onLangChange(lang === 'ID' ? 'EN' : 'ID')}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white/90 transition-all border border-white/15 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/15 text-xs font-semibold text-white/90 transition-all border border-white/15 cursor-pointer backdrop-blur-xs"
             title="Ganti Bahasa / Switch Language"
           >
             <Globe className="w-3.5 h-3.5" />
@@ -71,98 +71,232 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
         </div>
       </header>
 
-      {/* Center Hero: Title & 3D Leather Wallet Visual */}
-      <main className="w-full max-w-sm flex flex-col items-center text-center z-10 my-auto py-4">
+      {/* Center Hero: Title & 3D Tactile Leather Wallet on Pedestal */}
+      <main className="w-full max-w-sm flex flex-col items-center text-center z-10 my-auto py-2">
         
-        {/* Title */}
-        <div className="space-y-1 mb-2">
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+        {/* Title & Subtitle */}
+        <div className="space-y-1 mb-1">
+          <h1 className="text-4xl sm:text-[44px] font-extrabold tracking-tight text-white leading-[1.12]">
             Your Money <br />
-            <span className="text-[#88E5A7] font-semibold italic">Better Days</span>
+            <span className="text-[#86EFAC] font-serif italic font-medium">Better Days</span>
           </h1>
-          <p className="text-white/80 text-sm max-w-xs mx-auto pt-2 leading-relaxed font-normal">
+          <p className="text-white/75 text-sm max-w-[280px] sm:max-w-xs mx-auto pt-2 leading-relaxed font-normal">
             {lang === 'ID' 
               ? 'Kelola, rencanakan, dan kembangkan keuanganmu di satu tempat yang mudah.'
               : 'Save, spend, and grow your wealth — all in one simple place.'}
           </p>
         </div>
 
-        {/* 3D Realistic Leather Wallet on Podium (Crafted Vector Art) */}
-        <div className="relative w-64 h-64 sm:w-72 sm:h-72 my-4 flex items-center justify-center">
-          
-          {/* Ambient Platform Shadow */}
-          <div className="absolute bottom-6 w-56 h-12 bg-black/45 rounded-full blur-xl pointer-events-none" />
-
-          {/* Stepped Pedestal Podiums */}
-          <div className="absolute bottom-6 w-52 h-14 bg-gradient-to-b from-[#184433] to-[#0D241A] rounded-full border border-white/10 shadow-lg"></div>
-          <div className="absolute bottom-10 w-44 h-11 bg-gradient-to-b from-[#215A44] to-[#123628] rounded-full border border-white/15 shadow-inner"></div>
-
-          {/* Floating Leather Wallet with Card */}
-          <div className="relative -rotate-12 hover:rotate-0 transition-transform duration-500 ease-out z-10 cursor-pointer drop-shadow-2xl">
-            
-            {/* Credit Card Popping Out */}
-            <div className="absolute -top-12 left-6 w-36 h-24 bg-gradient-to-br from-[#1E293B] via-[#0F172A] to-[#0A0F1D] rounded-xl border border-white/20 shadow-xl p-2.5 flex flex-col justify-between overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div className="w-6 h-4.5 bg-gradient-to-tr from-amber-300 to-amber-500 rounded-sm border border-amber-200/50 flex items-center justify-center">
-                  <div className="w-4 h-2.5 border-t border-b border-black/30"></div>
-                </div>
-                <div className="flex -space-x-1">
-                  <div className="w-3.5 h-3.5 rounded-full bg-red-500/90"></div>
-                  <div className="w-3.5 h-3.5 rounded-full bg-amber-400/90"></div>
-                </div>
-              </div>
-              <div className="text-[8px] font-mono tracking-widest text-white/70">
-                •••• 4820
-              </div>
-            </div>
-
-            {/* Dark Green Stitched Leather Wallet Body */}
-            <div className="w-44 h-36 bg-gradient-to-br from-[#1A4B37] via-[#123628] to-[#0A2017] rounded-3xl border-2 border-[#2C7557] shadow-2xl relative p-3 flex flex-col justify-between overflow-hidden">
+        {/* 3D Realistic Handcrafted Vector Leather Wallet on Pedestal */}
+        <motion.div 
+          initial={{ y: 0 }}
+          animate={{ y: [-3, 3, -3] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative w-64 h-64 sm:w-72 sm:h-72 my-2 flex items-center justify-center cursor-pointer select-none"
+        >
+          <svg 
+            viewBox="0 0 320 320" 
+            className="w-full h-full drop-shadow-[0_20px_35px_rgba(0,0,0,0.6)]"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              {/* Pedestal Gradients */}
+              <linearGradient id="pedestalBase" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#0B261A" />
+                <stop offset="100%" stopColor="#05140E" />
+              </linearGradient>
+              <linearGradient id="pedestalTop" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1C523B" />
+                <stop offset="100%" stopColor="#0E2B1E" />
+              </linearGradient>
               
-              {/* Stitching Lines (Dotted White) */}
-              <div className="absolute inset-1.5 border border-dashed border-white/25 rounded-2xl pointer-events-none"></div>
+              {/* Wallet Leather Gradients */}
+              <linearGradient id="walletLeather" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1E543D" />
+                <stop offset="45%" stopColor="#143D2C" />
+                <stop offset="100%" stopColor="#0A2218" />
+              </linearGradient>
+              <linearGradient id="walletFlap" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1C4E37" />
+                <stop offset="100%" stopColor="#103223" />
+              </linearGradient>
 
-              {/* Wallet Top Opening */}
-              <div className="w-full h-2.5 bg-[#091D15] rounded-full opacity-80 shadow-inner"></div>
+              {/* Credit Card Gradient */}
+              <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1F2937" />
+                <stop offset="60%" stopColor="#111827" />
+                <stop offset="100%" stopColor="#090D16" />
+              </linearGradient>
 
-              {/* Wallet Flap & Hardware */}
-              <div className="absolute bottom-4 left-3 right-3 flex items-center justify-between">
-                <div className="w-10 h-7 bg-[#153E2E] rounded-xl border border-white/20 shadow-md flex items-center justify-center">
-                  {/* Brass Snap Button */}
-                  <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] shadow-md border border-amber-100 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-900/60"></div>
-                  </div>
-                </div>
-                <span className="text-[9px] font-bold tracking-widest text-white/40 uppercase">WILLOW</span>
-              </div>
-            </div>
+              {/* Gold Chip Gradient */}
+              <linearGradient id="goldChip" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FDE68A" />
+                <stop offset="50%" stopColor="#F59E0B" />
+                <stop offset="100%" stopColor="#D97706" />
+              </linearGradient>
 
-          </div>
-        </div>
+              {/* Metallic Brass Button Gradient */}
+              <radialGradient id="brassOuter" cx="40%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#FFFBEB" />
+                <stop offset="35%" stopColor="#FBBF24" />
+                <stop offset="70%" stopColor="#D97706" />
+                <stop offset="100%" stopColor="#92400E" />
+              </radialGradient>
+              <radialGradient id="brassInner" cx="40%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#FDE68A" />
+                <stop offset="50%" stopColor="#D97706" />
+                <stop offset="100%" stopColor="#78350F" />
+              </radialGradient>
 
-        {/* Error message if any */}
+              {/* Drop Shadow Filter */}
+              <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* 1. Ambient Floor Shadows */}
+            <ellipse cx="160" cy="282" rx="115" ry="18" fill="black" opacity="0.45" />
+            <ellipse cx="160" cy="278" rx="80" ry="10" fill="black" opacity="0.6" />
+
+            {/* 2. Lower Pedestal Tier */}
+            <path d="M 52,258 Q 160,274 268,258 L 268,272 Q 160,288 52,272 Z" fill="url(#pedestalBase)" />
+            <ellipse cx="160" cy="258" rx="108" ry="17" fill="url(#pedestalTop)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+            {/* 3. Upper Pedestal Tier */}
+            <path d="M 74,242 Q 160,256 246,242 L 246,254 Q 160,268 74,254 Z" fill="url(#pedestalBase)" />
+            <ellipse cx="160" cy="242" rx="86" ry="13.5" fill="url(#pedestalTop)" stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
+
+            {/* 4. Tilted Floating Leather Wallet Group */}
+            <g transform="rotate(-11 160 170)">
+              
+              {/* Behind Wallet: Dark Titanium Credit Card Popping Out */}
+              <g transform="translate(0, -6)">
+                {/* Card Body */}
+                <rect 
+                  x="96" 
+                  y="70" 
+                  width="128" 
+                  height="82" 
+                  rx="10" 
+                  fill="url(#cardGradient)" 
+                  stroke="rgba(255,255,255,0.22)" 
+                  strokeWidth="1" 
+                />
+                
+                {/* Subtle Card Magnetic Strip / Gloss Sheen */}
+                <path d="M 96,82 L 224,82" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+
+                {/* Gold EMV Chip */}
+                <rect x="110" y="90" width="22" height="17" rx="3.5" fill="url(#goldChip)" stroke="#B45309" strokeWidth="0.5" />
+                <path d="M 110,98 L 132,98 M 121,90 L 121,107" stroke="rgba(120,53,15,0.6)" strokeWidth="0.75" />
+
+                {/* Mastercard Dual Circles */}
+                <circle cx="198" cy="98" r="9" fill="#EF4444" opacity="0.95" />
+                <circle cx="210" cy="98" r="9" fill="#F59E0B" opacity="0.92" />
+                <path d="M 204,91.5 A 9 9 0 0 1 204,104.5 A 9 9 0 0 1 204,91.5" fill="#F97316" />
+
+                {/* Card Number Mask */}
+                <text x="110" y="128" fill="rgba(255,255,255,0.7)" fontSize="8" fontFamily="monospace" letterSpacing="2">•••• 8420</text>
+              </g>
+
+              {/* Wallet Main Body (Folded Leather) */}
+              <rect 
+                x="80" 
+                y="114" 
+                width="160" 
+                height="126" 
+                rx="24" 
+                fill="url(#walletLeather)" 
+                stroke="#2B6B4E" 
+                strokeWidth="1.5" 
+              />
+
+              {/* Wallet Subtle Specular Top Highlight */}
+              <path d="M 92,116 Q 160,114 228,116" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="none" />
+
+              {/* Leather Perimeter White Stitching */}
+              <rect 
+                x="86" 
+                y="120" 
+                width="148" 
+                height="114" 
+                rx="18" 
+                fill="none" 
+                stroke="rgba(255,255,255,0.28)" 
+                strokeWidth="1.2" 
+                strokeDasharray="4.5 3.5" 
+              />
+
+              {/* Top Wallet Slot Opening */}
+              <path 
+                d="M 94,128 Q 160,125 226,128" 
+                stroke="#06140D" 
+                strokeWidth="4" 
+                strokeLinecap="round" 
+              />
+
+              {/* Leather Tongue / Snap Closure Flap */}
+              <path 
+                d="M 88,176 L 118,176 A 14 14 0 0 1 118,204 L 88,204 Z" 
+                fill="url(#walletFlap)" 
+                stroke="#255E44" 
+                strokeWidth="1" 
+              />
+              <path 
+                d="M 89,180 L 116,180 A 10 10 0 0 1 116,200 L 89,200" 
+                fill="none" 
+                stroke="rgba(255,255,255,0.22)" 
+                strokeWidth="1" 
+                strokeDasharray="3 2.5" 
+              />
+
+              {/* Metallic Brass Snap Button */}
+              <circle cx="106" cy="190" r="7" fill="url(#brassOuter)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+              <circle cx="106" cy="190" r="4.2" fill="url(#brassInner)" />
+              <circle cx="104.5" cy="188.5" r="1.5" fill="#FFFBEB" opacity="0.75" />
+
+              {/* Embossed Brand Wordmark */}
+              <text 
+                x="180" 
+                y="218" 
+                fill="rgba(255,255,255,0.32)" 
+                fontSize="8.5" 
+                fontWeight="800" 
+                letterSpacing="2.8" 
+                fontFamily="system-ui, sans-serif"
+              >
+                WILLOW
+              </text>
+            </g>
+          </svg>
+        </motion.div>
+
+        {/* Error Notification if Google Auth Fails */}
         {loginError && (
-          <div className="w-full p-3 rounded-2xl bg-red-500/20 border border-red-500/40 text-red-200 text-xs mb-3 text-left flex items-start gap-2">
+          <div className="w-full p-3.5 rounded-2xl bg-red-500/20 border border-red-500/40 text-red-200 text-xs mb-2 text-left flex items-start gap-2.5 backdrop-blur-xs">
             <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="font-semibold">{lang === 'ID' ? 'Gagal Masuk Akun' : 'Login Failed'}</p>
-              <p className="text-[11px] text-red-300 mt-0.5">{loginError}</p>
+              <p className="text-[11px] text-red-300 mt-0.5 leading-relaxed">{loginError}</p>
             </div>
           </div>
         )}
 
       </main>
 
-      {/* Bottom CTA Button: White Pill "Mulai Sekarang dengan Google" */}
-      <footer className="w-full max-w-sm flex flex-col items-center z-10 pb-2">
+      {/* Bottom CTA Button & Requested Developer Footer */}
+      <footer className="w-full max-w-sm flex flex-col items-center gap-3.5 z-10 pb-2">
+        
+        {/* Primary CTA Button: White Pill "Mulai Sekarang dengan Google" */}
         <button
           type="button"
           onClick={handleGoogleLogin}
           disabled={isSubmitting}
-          className="w-full py-4 px-6 rounded-full bg-white text-[#123628] font-bold text-base shadow-xl shadow-black/25 hover:bg-[#F3FAF5] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 cursor-pointer group disabled:opacity-80"
+          className="w-full py-4 px-6 rounded-full bg-white text-[#0A261A] font-bold text-base shadow-xl shadow-black/35 hover:bg-[#F0FDF4] hover:shadow-2xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer group disabled:opacity-80"
         >
           {isSubmitting ? (
-            <div className="w-5 h-5 border-2 border-[#123628] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <div className="w-5 h-5 border-2 border-[#0A261A] border-t-transparent rounded-full animate-spin flex-shrink-0" />
           ) : (
             <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
               <path
@@ -188,8 +322,22 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
               ? (lang === 'ID' ? 'Menghubungkan...' : 'Connecting...')
               : (lang === 'ID' ? 'Mulai Sekarang dengan Google' : 'Continue with Google')}
           </span>
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-auto text-[#123628]/70" />
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-auto text-[#0A261A]/70" />
         </button>
+
+        {/* User Requested Footer Copyright & Threads Link */}
+        <p className="text-[11px] text-white/55 text-center tracking-wide font-normal">
+          © 2026 WillowWallet. Developed by{' '}
+          <a
+            href="https://www.threads.com/@luthafiyyan_"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white/85 hover:text-[#86EFAC] underline underline-offset-2 transition-colors font-medium"
+          >
+            Luthafiyyan
+          </a>
+        </p>
+
       </footer>
 
     </div>
