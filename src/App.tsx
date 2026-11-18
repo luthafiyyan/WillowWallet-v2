@@ -30,7 +30,7 @@ import { Home } from './pages/Home';
 import { Transactions } from './pages/Transactions';
 import { Analytics } from './pages/Analytics';
 import { Profile } from './pages/Profile';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw } from './components/icons';
 import { APP_TRANSLATIONS } from './utils/lang';
 import { 
   registerServiceWorker, 

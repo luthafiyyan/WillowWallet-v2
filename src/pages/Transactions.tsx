@@ -9,7 +9,7 @@ import {
   Trash2, 
   Filter,
   Calendar
-} from 'lucide-react';
+} from '../components/icons';
 import { Transaction, TransactionType } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
 import { APP_TRANSLATIONS } from '../utils/lang';

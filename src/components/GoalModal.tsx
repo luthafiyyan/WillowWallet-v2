@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target, Plus, Check } from 'lucide-react';
+import { X, Target, Plus, Check } from './icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { SavingGoal } from '../types';
 

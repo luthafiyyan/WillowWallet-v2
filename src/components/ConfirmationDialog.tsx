@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2 } from './icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { APP_TRANSLATIONS } from '../utils/lang';
 

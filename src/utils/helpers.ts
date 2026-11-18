@@ -14,8 +14,8 @@ import {
   Film,
   Zap,
   DollarSign,
-  LucideIcon
-} from 'lucide-react';
+  type AnimatedIcon
+} from '../components/icons';
 
 // Format currency as IDR
 export const formatRupiah = (amount: number): string => {
@@ -38,7 +38,7 @@ export const getIndonesianGreeting = (): string => {
 
 // Map category or brand string to visual representation
 export interface CategoryStyle {
-  icon: LucideIcon;
+  icon: AnimatedIcon;
   bgClass: string;
   textClass: string;
   badgeChar?: string;

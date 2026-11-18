@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, BarChart2, ArrowLeftRight, User, Plus } from 'lucide-react';
+import { Home, BarChart2, ArrowLeftRight, User, Plus } from './icons';
 import { APP_TRANSLATIONS } from '../utils/lang';
 
 export type TabId = 'home' | 'analytics' | 'transactions' | 'profile';

@@ -11,7 +11,7 @@ import {
   Sprout, 
   ShieldCheck,
   CheckCircle2
-} from 'lucide-react';
+} from './icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { Transaction, Budget } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';

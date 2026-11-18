@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Calendar, MessageSquare, Check } from 'lucide-react';
+import { X, Calendar, MessageSquare, Check } from './icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { Transaction, TransactionType } from '../types';
 import { APP_TRANSLATIONS } from '../utils/lang';

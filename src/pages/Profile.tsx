@@ -18,7 +18,7 @@ import {
   Smartphone,
   Upload,
   X
-} from 'lucide-react';
+} from '../components/icons';
 import { AppUser, Transaction, Budget, SavingGoal, BackupData } from '../types';
 import { formatRupiah } from '../utils/helpers';
 import { APP_TRANSLATIONS } from '../utils/lang';

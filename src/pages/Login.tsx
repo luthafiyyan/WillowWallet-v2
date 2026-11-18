@@ -9,7 +9,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Sparkles
-} from 'lucide-react';
+} from '../components/icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { auth, saveFirebaseConfig, isSandboxMode } from '../firebase/config';
 

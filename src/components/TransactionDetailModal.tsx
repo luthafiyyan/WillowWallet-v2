@@ -9,7 +9,7 @@ import {
   ArrowUpRight, 
   ArrowDownLeft, 
   History 
-} from 'lucide-react';
+} from './icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { Transaction } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';

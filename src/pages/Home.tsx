@@ -21,7 +21,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Wallet
-} from 'lucide-react';
+} from '../components/icons';
 import { Transaction, Budget, AppUser, SavingGoal } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
 import { APP_TRANSLATIONS } from '../utils/lang';

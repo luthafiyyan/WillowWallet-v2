@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from './icons';
 import { AnimatePresence, motion } from 'motion/react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

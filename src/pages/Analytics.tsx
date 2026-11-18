@@ -13,7 +13,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileDown
-} from 'lucide-react';
+} from '../components/icons';
 import { Transaction, Budget } from '../types';
 import { formatRupiah, getCategoryStyle } from '../utils/helpers';
 import { 
