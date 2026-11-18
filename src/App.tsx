@@ -318,6 +318,8 @@ function AppContent() {
 
   const handleLogout = async () => {
     try {
+      localStorage.removeItem('WILLOW_FORCE_SANDBOX');
+      localStorage.removeItem('WILLOW_SANDBOX_USER');
       await auth.signOut();
       showToast(lang === 'ID' ? 'Berhasil keluar sesi' : 'Logged out successfully', 'info');
       setActiveTab('home');

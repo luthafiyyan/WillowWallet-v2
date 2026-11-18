@@ -33,12 +33,8 @@ const defaultConfig = {
   appId: "1:867520153542:web:c2f407491af6f64c1754c7"
 };
 
-const isSandboxForced = localStorage.getItem('WILLOW_FORCE_SANDBOX') === 'true';
-
 const hasEnvConfig = !!(envConfig.apiKey && envConfig.databaseURL);
-const activeConfig = isSandboxForced 
-  ? null 
-  : (getStoredConfig() || (hasEnvConfig ? envConfig : defaultConfig));
+const activeConfig = getStoredConfig() || (hasEnvConfig ? envConfig : defaultConfig);
 
 export const isSandboxMode = !activeConfig;
 
