@@ -1,35 +1,33 @@
+import React from 'react';
 import {
-  Utensils,
-  Car,
-  ShoppingBag,
+  ForkKnife,
+  CarFront,
+  FuelPump,
+  Bag,
   Receipt,
-  ReceiptText,
   Tv,
+  Controller,
   HeartPulse,
-  Pill,
-  GraduationCap,
-  BookOpen,
+  Capsule,
+  Mortarboard,
+  Book,
   Briefcase,
-  Banknote,
-  TrendingUp,
+  CashStack,
+  GraphUpArrow,
   PiggyBank,
-  Gift,
-  Coffee,
-  Film,
-  Zap,
-  DollarSign,
-  HelpCircle,
-  Flame,
-  Gamepad,
-  Dumbbell,
-  HandHeart,
-  House,
-  Users,
-  Smartphone,
   Laptop,
-  Sparkles,
-  type AnimatedIcon
-} from '../components/icons';
+  LightningCharge,
+  Trophy,
+  Heart,
+  Gift,
+  HouseDoor,
+  People,
+  Phone,
+  CupHot,
+  Film,
+  QuestionCircle,
+  type Icon as BootstrapIcon
+} from 'react-bootstrap-icons';
 
 // Format currency as IDR
 export const formatRupiah = (amount: number): string => {
@@ -50,9 +48,9 @@ export const getIndonesianGreeting = (): string => {
   return 'Selamat malam';
 };
 
-// Map category or brand string to visual representation
+// Map category or brand string to visual representation using Bootstrap Icons (https://icons.getbootstrap.com/)
 export interface CategoryStyle {
-  icon: AnimatedIcon;
+  icon: BootstrapIcon | React.ComponentType<any>;
   bgClass: string;
   textClass: string;
   badgeChar?: string;
@@ -78,14 +76,14 @@ export const getCategoryStyle = (category: string, description: string = ''): Ca
   }
   if (combined.includes('starbucks') || combined.includes('kopi') || combined.includes('coffee') || combined.includes('cafe') || combined.includes('kafe')) {
     return {
-      icon: Coffee,
+      icon: CupHot,
       bgClass: 'bg-[#00704A]/12 text-[#00704A] dark:bg-[#00704A]/25 dark:text-[#34D399]',
       textClass: 'text-[#00704A] dark:text-[#34D399]'
     };
   }
   if (combined.includes('uber') || combined.includes('grab') || combined.includes('gojek')) {
     return {
-      icon: Car,
+      icon: CarFront,
       bgClass: 'bg-amber-400/15 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300',
       textClass: 'text-amber-600 dark:text-amber-400'
     };
@@ -98,7 +96,7 @@ export const getCategoryStyle = (category: string, description: string = ''): Ca
     };
   }
 
-  // 2. BBM / Bahan Bakar / Fuel (Dedicated Match)
+  // 2. BBM / Bahan Bakar / Fuel (Bootstrap Icons FuelPump: https://icons.getbootstrap.com/icons/fuel-pump/)
   if (
     normCat === 'bbm' || 
     combined.includes('bbm') || 
@@ -108,71 +106,72 @@ export const getCategoryStyle = (category: string, description: string = ''): Ca
     combined.includes('solar') || 
     combined.includes('spbu') || 
     combined.includes('fuel') || 
-    combined.includes('shell')
+    combined.includes('shell') ||
+    combined.includes('gas')
   ) {
     return {
-      icon: Flame,
-      bgClass: 'bg-amber-500/15 dark:bg-amber-500/25',
-      textClass: 'text-amber-600 dark:text-amber-400'
+      icon: FuelPump,
+      bgClass: 'bg-[#FFF8E1] dark:bg-amber-950/40',
+      textClass: 'text-[#F57F17] dark:text-[#FFB74D]'
     };
   }
 
-  // 3. Category matching with 21st.dev animated icons
+  // 3. Category matching with official Bootstrap Icons (https://icons.getbootstrap.com/)
   if (combined.includes('makan') || combined.includes('minum') || combined.includes('food') || combined.includes('restoran') || combined.includes('kuliner') || combined.includes('snack')) {
-    return { icon: Utensils, bgClass: 'bg-orange-500/14 dark:bg-orange-500/24', textClass: 'text-orange-600 dark:text-orange-400' };
+    return { icon: ForkKnife, bgClass: 'bg-[#FBE9E7] dark:bg-orange-950/40', textClass: 'text-[#D84315] dark:text-[#FF8A65]' };
   }
   if (combined.includes('trans') || combined.includes('mobil') || combined.includes('motor') || combined.includes('ojek') || combined.includes('taksi') || combined.includes('taxi') || combined.includes('kereta') || combined.includes('bus') || combined.includes('parkir') || combined.includes('tol')) {
-    return { icon: Car, bgClass: 'bg-blue-500/14 dark:bg-blue-500/24', textClass: 'text-blue-600 dark:text-blue-400' };
+    return { icon: CarFront, bgClass: 'bg-[#E3F2FD] dark:bg-blue-950/40', textClass: 'text-[#1976D2] dark:text-[#64B5F6]' };
   }
   if (combined.includes('belanja') || combined.includes('shopping') || combined.includes('baju') || combined.includes('mall') || combined.includes('pasar') || combined.includes('minimarket') || combined.includes('supermarket')) {
-    return { icon: ShoppingBag, bgClass: 'bg-rose-500/14 dark:bg-rose-500/24', textClass: 'text-rose-600 dark:text-rose-400' };
+    return { icon: Bag, bgClass: 'bg-[#FCE4EC] dark:bg-pink-950/40', textClass: 'text-[#C2185B] dark:text-[#F48FB1]' };
   }
   if (combined.includes('tagihan') || combined.includes('utilitas') || combined.includes('listrik') || combined.includes('pulsa') || combined.includes('air') || combined.includes('internet') || combined.includes('pdam') || combined.includes('pln') || combined.includes('wifi') || combined.includes('bpjs')) {
-    return { icon: ReceiptText, bgClass: 'bg-amber-500/14 dark:bg-amber-500/24', textClass: 'text-amber-600 dark:text-amber-400' };
+    return { icon: Receipt, bgClass: 'bg-[#FFF8E1] dark:bg-amber-950/40', textClass: 'text-[#F57F17] dark:text-[#FFD54F]' };
   }
   if (combined.includes('hiburan') || combined.includes('game') || combined.includes('gaming') || combined.includes('steam') || combined.includes('wisata') || combined.includes('rekreasi') || combined.includes('liburan')) {
-    return { icon: Gamepad, bgClass: 'bg-purple-500/14 dark:bg-purple-500/24', textClass: 'text-purple-600 dark:text-purple-400' };
+    return { icon: Controller, bgClass: 'bg-[#F3E5F5] dark:bg-purple-950/40', textClass: 'text-[#7B1FA2] dark:text-[#CE93D8]' };
   }
   if (combined.includes('film') || combined.includes('bioskop') || combined.includes('cinema') || combined.includes('movie') || combined.includes('tv')) {
-    return { icon: Tv, bgClass: 'bg-purple-500/14 dark:bg-purple-500/24', textClass: 'text-purple-600 dark:text-purple-400' };
+    return { icon: Tv, bgClass: 'bg-[#F3E5F5] dark:bg-purple-950/40', textClass: 'text-[#7B1FA2] dark:text-[#CE93D8]' };
   }
   if (combined.includes('sehat') || combined.includes('kesehatan') || combined.includes('dokter') || combined.includes('klinik') || combined.includes('hospital') || combined.includes('rumah sakit')) {
-    return { icon: HeartPulse, bgClass: 'bg-pink-500/14 dark:bg-pink-500/24', textClass: 'text-pink-600 dark:text-pink-400' };
+    return { icon: HeartPulse, bgClass: 'bg-[#FCE4EC] dark:bg-rose-950/40', textClass: 'text-[#D81B60] dark:text-[#F06292]' };
   }
   if (combined.includes('obat') || combined.includes('apotek') || combined.includes('vitamin') || combined.includes('medis')) {
-    return { icon: Pill, bgClass: 'bg-pink-500/14 dark:bg-pink-500/24', textClass: 'text-pink-600 dark:text-pink-400' };
+    return { icon: Capsule, bgClass: 'bg-[#FCE4EC] dark:bg-rose-950/40', textClass: 'text-[#D81B60] dark:text-[#F06292]' };
   }
   if (combined.includes('olahraga') || combined.includes('gym') || combined.includes('fitness') || combined.includes('workout') || combined.includes('sport')) {
-    return { icon: Dumbbell, bgClass: 'bg-lime-500/14 dark:bg-lime-500/24', textClass: 'text-lime-600 dark:text-lime-400' };
+    return { icon: Trophy, bgClass: 'bg-[#F1F8E9] dark:bg-lime-950/40', textClass: 'text-[#558B2F] dark:text-[#AED581]' };
   }
   if (combined.includes('didik') || combined.includes('sekolah') || combined.includes('kuliah') || combined.includes('buku') || combined.includes('kursus') || combined.includes('pendidikan')) {
-    return { icon: GraduationCap, bgClass: 'bg-indigo-500/14 dark:bg-indigo-500/24', textClass: 'text-indigo-600 dark:text-indigo-400' };
+    return { icon: Mortarboard, bgClass: 'bg-[#E8EAF6] dark:bg-indigo-950/40', textClass: 'text-[#3949AB] dark:text-[#7986CB]' };
   }
   if (combined.includes('gaji') || combined.includes('upah') || combined.includes('penghasilan') || combined.includes('income')) {
-    return { icon: Banknote, bgClass: 'bg-emerald-500/14 dark:bg-emerald-500/24', textClass: 'text-emerald-600 dark:text-emerald-400' };
+    return { icon: CashStack, bgClass: 'bg-[#123628]/12 dark:bg-[#4ADE80]/20', textClass: 'text-[#123628] dark:text-[#4ADE80]' };
   }
   if (combined.includes('invest') || combined.includes('saham') || combined.includes('crypto') || combined.includes('reksadana') || combined.includes('emas') || combined.includes('tabungan')) {
-    return { icon: TrendingUp, bgClass: 'bg-teal-500/14 dark:bg-teal-500/24', textClass: 'text-teal-600 dark:text-teal-400' };
+    return { icon: GraphUpArrow, bgClass: 'bg-[#E0F2F1] dark:bg-teal-950/40', textClass: 'text-[#00796B] dark:text-[#4DB6AC]' };
   }
   if (combined.includes('sampingan') || combined.includes('freelance') || combined.includes('proyek') || combined.includes('komisi') || combined.includes('side')) {
-    return { icon: Laptop, bgClass: 'bg-cyan-500/14 dark:bg-cyan-500/24', textClass: 'text-cyan-600 dark:text-cyan-400' };
+    return { icon: Laptop, bgClass: 'bg-[#E0F7FA] dark:bg-cyan-950/40', textClass: 'text-[#0097A7] dark:text-[#4DD0E1]' };
   }
   if (combined.includes('sedekah') || combined.includes('zakat') || combined.includes('amal') || combined.includes('donasi') || combined.includes('infaq') || combined.includes('infak')) {
-    return { icon: HandHeart, bgClass: 'bg-emerald-500/14 dark:bg-emerald-500/24', textClass: 'text-emerald-600 dark:text-emerald-400' };
+    return { icon: Heart, bgClass: 'bg-[#E8F5E9] dark:bg-emerald-950/40', textClass: 'text-[#2E7D32] dark:text-[#81C784]' };
   }
   if (combined.includes('hadiah') || combined.includes('gift') || combined.includes('kado') || combined.includes('bonus')) {
-    return { icon: Gift, bgClass: 'bg-teal-500/14 dark:bg-teal-500/24', textClass: 'text-teal-600 dark:text-teal-400' };
+    return { icon: Gift, bgClass: 'bg-[#E0F2F1] dark:bg-teal-950/40', textClass: 'text-[#00796B] dark:text-[#80CBC4]' };
   }
   if (combined.includes('rumah') || combined.includes('kos') || combined.includes('kost') || combined.includes('kontrakan') || combined.includes('apartemen')) {
-    return { icon: House, bgClass: 'bg-sky-500/14 dark:bg-sky-500/24', textClass: 'text-sky-600 dark:text-sky-400' };
+    return { icon: HouseDoor, bgClass: 'bg-[#E1F5FE] dark:bg-sky-950/40', textClass: 'text-[#0288D1] dark:text-[#4FC3F7]' };
   }
   if (combined.includes('keluarga') || combined.includes('anak') || combined.includes('bayi') || combined.includes('ortu')) {
-    return { icon: Users, bgClass: 'bg-violet-500/14 dark:bg-violet-500/24', textClass: 'text-violet-600 dark:text-violet-400' };
+    return { icon: People, bgClass: 'bg-[#EDE7F6] dark:bg-violet-950/40', textClass: 'text-[#512DA8] dark:text-[#B39DDB]' };
   }
   if (combined.includes('elektronik') || combined.includes('gadget') || combined.includes('hp')) {
-    return { icon: Smartphone, bgClass: 'bg-blue-500/14 dark:bg-blue-500/24', textClass: 'text-blue-600 dark:text-blue-400' };
+    return { icon: Phone, bgClass: 'bg-[#E8EAF6] dark:bg-blue-950/40', textClass: 'text-[#283593] dark:text-[#9FA8DA]' };
   }
   
-  // Fallback default
-  return { icon: Sparkles, bgClass: 'bg-slate-500/14 dark:bg-slate-500/24', textClass: 'text-slate-600 dark:text-slate-400' };
+  // Fallback default (Bootstrap Icons QuestionCircle: https://icons.getbootstrap.com/icons/question-circle/)
+  return { icon: QuestionCircle, bgClass: 'bg-slate-100 dark:bg-slate-800', textClass: 'text-slate-600 dark:text-slate-400' };
 };

@@ -285,7 +285,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                               : 'bg-slate-100/70 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-text-secondary hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02] active:scale-[0.98]'
                           }`}
                         >
-                          <div className={`w-9 h-9 rounded-2xl ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
+                          <div className={`w-10 h-10 rounded-full ${catStyle.bgClass} ${catStyle.textClass} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
                             <IconComp className="w-5 h-5" />
                           </div>
                           <span className="text-xs leading-tight line-clamp-1 font-medium">
