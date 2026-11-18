@@ -8,6 +8,7 @@ export const DEFAULT_CATEGORIES = [
   'Tagihan & Utilitas',
   'Hiburan',
   'Kesehatan',
+  'Perawatan Diri',
   'Pendidikan',
   'Gaji',
   'Investasi',

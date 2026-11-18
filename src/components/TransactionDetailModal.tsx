@@ -57,6 +57,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       'Belanja': 'Shopping',
       'Hiburan': 'Entertainment',
       'Tagihan': 'Bills & Utilities',
+      'Perawatan Diri': 'Self Care',
       'Lainnya': 'Others',
       'Gaji': 'Salary',
       'Investasi': 'Investment',

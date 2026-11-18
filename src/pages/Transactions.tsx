@@ -54,6 +54,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
       'Tagihan': 'Bills & Utilities',
       'Tagihan & Utilitas': 'Bills & Utilities',
       'Kesehatan': 'Health',
+      'Perawatan Diri': 'Self Care',
       'Pendidikan': 'Education',
       'Lainnya': 'Others',
       'Gaji': 'Salary',

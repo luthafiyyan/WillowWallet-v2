@@ -25,6 +25,7 @@ import {
   Phone,
   CupHot,
   Film,
+  AwardFill,
   QuestionCircle,
   type Icon as BootstrapIcon
 } from 'react-bootstrap-icons';
@@ -137,6 +138,22 @@ export const getCategoryStyle = (category: string, description: string = ''): Ca
   }
   if (combined.includes('sehat') || combined.includes('kesehatan') || combined.includes('dokter') || combined.includes('klinik') || combined.includes('hospital') || combined.includes('rumah sakit')) {
     return { icon: HeartPulse, bgClass: 'bg-[#FCE4EC] dark:bg-rose-950/40', textClass: 'text-[#D81B60] dark:text-[#F06292]' };
+  }
+  // Perawatan Diri / Self Care (Bootstrap Icons AwardFill: https://icons.getbootstrap.com/icons/award-fill/)
+  if (
+    normCat === 'perawatan diri' ||
+    normCat === 'perawatan' ||
+    combined.includes('perawatan') ||
+    combined.includes('self care') ||
+    combined.includes('personal care') ||
+    combined.includes('skincare') ||
+    combined.includes('salon') ||
+    combined.includes('barber') ||
+    combined.includes('spa') ||
+    combined.includes('beauty') ||
+    combined.includes('grooming')
+  ) {
+    return { icon: AwardFill, bgClass: 'bg-[#FDF4FF] dark:bg-fuchsia-950/40', textClass: 'text-[#C026D3] dark:text-[#E879F9]' };
   }
   if (combined.includes('obat') || combined.includes('apotek') || combined.includes('vitamin') || combined.includes('medis')) {
     return { icon: Capsule, bgClass: 'bg-[#FCE4EC] dark:bg-rose-950/40', textClass: 'text-[#D81B60] dark:text-[#F06292]' };

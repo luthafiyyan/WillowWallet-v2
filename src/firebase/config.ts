@@ -51,7 +51,9 @@ class SandboxDatabase {
         'Belanja',
         'Tagihan & Utilitas',
         'Hiburan',
-        'Keseharian',
+        'Kesehatan',
+        'Perawatan Diri',
+        'Pendidikan',
         'Gaji',
         'Investasi',
         'Lainnya'
