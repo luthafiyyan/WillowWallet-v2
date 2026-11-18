@@ -189,7 +189,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl liquid-pill-active text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl forest-pill-active text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>{editingGoal ? (lang === 'ID' ? 'Simpan' : 'Save') : (lang === 'ID' ? 'Buat Target' : 'Create Goal')}</span>

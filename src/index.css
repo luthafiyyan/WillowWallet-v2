@@ -3,31 +3,38 @@
 @variant dark (.dark &);
 
 @theme {
-  --color-primary: #1B8A5A;
-  --color-secondary: #3AA772;
-  --color-brand-bg: #F0F4F8;
+  --color-primary: #123628;
+  --color-primary-dark: #0D261C;
+  --color-primary-light: #1E4E3B;
+  --color-secondary: #52A874;
+  --color-sage-bg: #E8F4EC;
+  --color-sage-text: #164830;
+  --color-brand-bg: #F8FAF8;
   --color-surface: #FFFFFF;
-  --color-border-custom: #E4E9F2;
+  --color-border-custom: #E4ECE6;
   --color-success-custom: #16A34A;
   --color-danger-custom: #EF4444;
   --color-warning-custom: #F59E0B;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
+  --color-text-primary: #0F1F17;
+  --color-text-secondary: #5C7065;
   
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   
-  --shadow-soft: 0 4px 20px -2px rgba(30, 41, 59, 0.05), 0 2px 8px -1px rgba(30, 41, 59, 0.03);
-  --shadow-medium: 0 10px 30px -4px rgba(30, 41, 59, 0.08), 0 4px 12px -2px rgba(30, 41, 59, 0.04);
+  --shadow-soft: 0 4px 20px -2px rgba(18, 54, 40, 0.05), 0 2px 8px -1px rgba(18, 54, 40, 0.03);
+  --shadow-medium: 0 12px 32px -4px rgba(18, 54, 40, 0.08), 0 4px 12px -2px rgba(18, 54, 40, 0.04);
 }
 
 .dark {
-  --color-brand-bg: #060B14;
-  --color-surface: #111A2E;
-  --color-border-custom: #1E2B45;
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-primary: #10B981;
-  --color-secondary: #34D399;
+  --color-brand-bg: #07100B;
+  --color-surface: #0E1F17;
+  --color-border-custom: #173326;
+  --color-text-primary: #F4F8F5;
+  --color-text-secondary: #8DA799;
+  --color-primary: #22C55E;
+  --color-primary-dark: #123628;
+  --color-secondary: #4ADE80;
+  --color-sage-bg: #143324;
+  --color-sage-text: #86EFAC;
 }
 
 html, body {
@@ -44,7 +51,7 @@ html, body {
 
 /* Accessibility & Interaction Affordances */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-secondary);
   outline-offset: 2px;
 }
 
@@ -65,39 +72,55 @@ a[href], button, summary, select, label[for], input[type="checkbox"], input[type
   }
 }
 
-/* Floating Navigation Dock - Purposeful glassmorphism for floating controls */
+/* Floating Navigation Dock - Clean & solid bottom bar matching reference */
 .liquid-glass-dock {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(228, 236, 230, 0.9);
   box-shadow: 
-    0 16px 36px -8px rgba(15, 23, 42, 0.12),
-    0 4px 12px -2px rgba(15, 23, 42, 0.04),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+    0 20px 40px -10px rgba(18, 54, 40, 0.12),
+    0 4px 14px -2px rgba(18, 54, 40, 0.05);
 }
 
 .dark .liquid-glass-dock {
-  background: rgba(13, 20, 36, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(14, 31, 23, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 
-    0 20px 48px -10px rgba(0, 0, 0, 0.65),
-    0 6px 16px -2px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.16);
+    0 24px 50px -10px rgba(0, 0, 0, 0.65),
+    0 6px 16px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* Precision Solid Surface Cards - High-Trust Fintech Design */
+/* Deep Forest Hero Balance Card - Reference Image Signature Style */
+.forest-hero-card {
+  background: linear-gradient(145deg, #123628 0%, #0F2D21 60%, #0C241B 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 20px 40px -12px rgba(18, 54, 40, 0.35),
+    0 4px 12px -2px rgba(18, 54, 40, 0.15),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .forest-hero-card {
+  background: linear-gradient(145deg, #153F30 0%, #0F2B20 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 24px 48px -12px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Precision Solid Surface Cards */
 .liquid-glass-card {
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #E5ECE7;
   box-shadow: 
-    0 1px 3px 0 rgba(15, 23, 42, 0.04),
-    0 1px 2px -1px rgba(15, 23, 42, 0.02);
+    0 2px 6px -1px rgba(18, 54, 40, 0.03),
+    0 1px 2px -1px rgba(18, 54, 40, 0.02);
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .dark .liquid-glass-card {
-  background: #0F172A;
+  background: #0E1F17;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 
     0 4px 14px -2px rgba(0, 0, 0, 0.35),
@@ -106,79 +129,129 @@ a[href], button, summary, select, label[for], input[type="checkbox"], input[type
 
 .liquid-glass-card-interactive:hover {
   transform: translateY(-2px);
-  border-color: #CBD5E1;
+  border-color: #CBDCD0;
   box-shadow: 
-    0 10px 24px -4px rgba(15, 23, 42, 0.07),
-    0 3px 8px -1px rgba(15, 23, 42, 0.04);
+    0 10px 24px -4px rgba(18, 54, 40, 0.07),
+    0 3px 8px -1px rgba(18, 54, 40, 0.04);
 }
 
 .dark .liquid-glass-card-interactive:hover {
   border-color: rgba(255, 255, 255, 0.16);
-  background: #131E35;
-  box-shadow: 
-    0 12px 28px -4px rgba(0, 0, 0, 0.55),
-    0 4px 10px 0 rgba(0, 0, 0, 0.3);
+  background: #12281E;
 }
 
-/* Emerald Hero Summary Card - High Contrast & Prestigious */
-.liquid-glass-emerald {
-  background: linear-gradient(135deg, #157A4E 0%, #0E5637 100%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 
-    0 16px 32px -8px rgba(21, 122, 78, 0.32),
-    0 4px 12px -2px rgba(21, 122, 78, 0.14),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
+/* Action Circle Buttons (Add, Send, Convert, More) */
+.action-circle-btn {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background-color: #F0F4F1;
+  color: #123628;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E2EAE4;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Input Fields - Clear Boundaries & Accessible Focus */
+.action-circle-btn:hover {
+  background-color: #E2ECE5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -3px rgba(18, 54, 40, 0.12);
+}
+
+.action-circle-btn:active {
+  transform: scale(0.94);
+}
+
+.dark .action-circle-btn {
+  background-color: #142920;
+  color: #E2F0E7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .action-circle-btn:hover {
+  background-color: #1B382C;
+}
+
+/* Sage Insight Banner */
+.sage-insight-card {
+  background-color: #EBF5EF;
+  border: 1px solid #D2E9DA;
+  color: #123628;
+}
+
+.dark .sage-insight-card {
+  background-color: #122B20;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  color: #EBF5EF;
+}
+
+/* Input Fields */
 .liquid-glass-input {
-  background: #F8FAFC;
-  border: 1px solid #CBD5E1;
-  color: #0F172A;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  background: #F8FAF8;
+  border: 1px solid #CCDCD1;
+  color: #0F1F17;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .dark .liquid-glass-input {
-  background: #0E172A;
+  background: #0B1912;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #F8FAFC;
+  color: #F4F8F5;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Modal and Bottom Sheet Containers */
 .liquid-glass-modal {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 
-    0 24px 60px -12px rgba(15, 23, 42, 0.2),
+    0 24px 60px -12px rgba(18, 54, 40, 0.25),
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .dark .liquid-glass-modal {
-  background: rgba(14, 21, 38, 0.92);
+  background: rgba(14, 31, 23, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 
-    0 28px 70px -15px rgba(0, 0, 0, 0.75),
+    0 28px 70px -15px rgba(0, 0, 0, 0.8),
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-/* Active Segmented / Action Buttons */
-.liquid-pill-active {
-  background: linear-gradient(135deg, #1B8A5A 0%, #15734A 100%);
+/* Active Segmented Pill - High Contrast Deep Forest Green */
+.forest-pill-active {
+  background-color: #123628;
   color: #FFFFFF;
-  box-shadow: 
-    0 4px 14px -1px rgba(27, 138, 90, 0.38),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 12px -2px rgba(18, 54, 40, 0.3);
 }
 
-.dark .liquid-pill-active {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  color: #FFFFFF;
-  box-shadow: 
-    0 4px 16px -1px rgba(16, 185, 129, 0.45),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+.dark .forest-pill-active {
+  background-color: #22C55E;
+  color: #07100B;
+  box-shadow: 0 4px 14px -2px rgba(34, 197, 94, 0.4);
+}
+
+/* Inactive Segmented Pill */
+.forest-pill-inactive {
+  background-color: transparent;
+  color: #5C7065;
+}
+
+.forest-pill-inactive:hover {
+  color: #0F1F17;
+  background-color: #F0F4F1;
+}
+
+.dark .forest-pill-inactive {
+  color: #8DA799;
+}
+
+.dark .forest-pill-inactive:hover {
+  color: #F4F8F5;
+  background-color: #142920;
 }
 
 /* Scrollbar */
@@ -206,4 +279,36 @@ a[href], button, summary, select, label[for], input[type="checkbox"], input[type
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Print Stylesheet for Monthly Report Slip / PDF Export */
+@media print {
+  html, body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  nav, header, [aria-label="Navigasi utama"], button, .liquid-glass-dock {
+    display: none !important;
+  }
+
+  #printable-monthly-slip {
+    display: block !important;
+    width: 100% !important;
+    max-width: 650px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    box-shadow: none !important;
+    border: 1px solid #D0D0D0 !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+  }
+
+  .forest-hero-card {
+    background: #123628 !important;
+    color: #FFFFFF !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }

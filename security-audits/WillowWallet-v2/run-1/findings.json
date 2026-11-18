@@ -1,0 +1,290 @@
+[
+  {
+    "verdict": "confirmed",
+    "fingerprint": "willow-export-csv-formula-injection",
+    "title": "CSV Formula Injection via Unsanitized Transaction Description Field",
+    "description": "In Home.tsx and Profile.tsx, CSV transaction export wraps cells in double quotes but fails to neutralize spreadsheet formula trigger characters (=, +, -, @, \\t, \\r). When a user exports transactions containing these leading characters and opens the CSV in spreadsheet software such as Microsoft Excel, LibreOffice Calc, or Google Sheets, the application interprets the text as an active spreadsheet formula.",
+    "root_cause": "Transaction description text is interpolated into CSV rows by only escaping existing double quotes with pair quotes, without prefixing leading spreadsheet formula triggers (=, +, -, @, \\t, \\r) with a neutralization character such as a single quote.",
+    "intended_behavior": "All string fields placed into exported CSV files must neutralize leading spreadsheet formula characters by prepending an apostrophe (') before quoting, preventing automated formula evaluation.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/pages/Home.tsx",
+        "line": 165,
+        "scope": "handleExportCSV",
+        "description": "Transaction description field is extracted from state and prepared for CSV export."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/pages/Home.tsx",
+        "line": 170,
+        "scope": "handleExportCSV",
+        "description": "CSV content rows are joined by wrapping cell values in double quotes without inspecting the leading character."
+      },
+      {
+        "kind": "sink",
+        "file": "src/pages/Home.tsx",
+        "line": 174,
+        "scope": "handleExportCSV",
+        "description": "CSV content is formatted as a data URI and automatically downloaded to the user filesystem."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/pages/Home.tsx",
+        "line": 170,
+        "description": "CSV line generator wraps cell values in double quotes without neutralizing leading formula triggers."
+      },
+      {
+        "file": "src/pages/Profile.tsx",
+        "line": 150,
+        "description": "CSV export in Profile.tsx duplicates the same unneutralized cell wrapping logic."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "user_interaction",
+        "description": "User creates or imports a transaction whose description begins with a formula operator (=, +, -, @), exports the CSV, and opens it in spreadsheet software with formula calculation enabled."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Attacker supplies a financial record whose description starts with a formula expression (e.g. '=1+1') or induces a victim to restore a backup containing it.",
+      "payloads": [
+        "=1+1",
+        "@SUM(1+1)"
+      ],
+      "instructions": [
+        "Create a transaction with description '=1+1'.",
+        "Click the CSV export button on the Home or Profile page.",
+        "Open the generated CSV file in Microsoft Excel or LibreOffice Calc."
+      ],
+      "observed_result": "Spreadsheet application treats '=1+1' as an active formula, displaying '2' instead of the literal text '=1+1'."
+    },
+    "remediation": {
+      "strategy": "Sanitize all cell values before serialization by checking for leading formula triggers (=, +, -, @, \\t, \\r) and prefixing them with a single quote (').",
+      "code_changes": [
+        {
+          "file_name": "src/pages/Home.tsx",
+          "fixed_code": "const sanitizeCsvCell = (val: any) => {\n  const s = String(val ?? '');\n  if (/^[=\\+\\-@\\t\\r]/.test(s)) {\n    return \"'\" + s.replace(/\"/g, '\"\"');\n  }\n  return s.replace(/\"/g, '\"\"');\n};"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "low",
+        "reason": "Requires user interaction to create or import a malicious transaction description and subsequently open the exported file in external spreadsheet software."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "Formula execution in spreadsheet software, potentially disclosing cell values or executing macros if security warnings are bypassed."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Confirmed by examining the CSV export string construction logic in both Home.tsx and Profile.tsx."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "willow-firebase-rtdb-unverified-rules",
+    "title": "Unverified Multi-Tenant Security Rules for Firebase Realtime Database",
+    "description": "The application initializes Firebase Realtime Database with a hardcoded cloud instance URL and scopes user data to 'users/${uid}/...'. However, no database.rules.json file or Firebase deployment configuration is tracked in the repository. If cloud security rules are missing, set to test mode (open), or improperly scoped, unauthorized users could read or overwrite data belonging to other tenants.",
+    "claimed_root_cause": "Multi-tenant access control for Firebase Realtime Database is enforced exclusively on Google cloud infrastructure via server-side rules. Because no security rules file exists in the codebase, isolation guarantees cannot be established from repository source alone.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/firebase/config.ts",
+        "line": 29,
+        "scope": "defaultConfig",
+        "description": "Production database URL 'https://willowwallet-65699-default-rtdb.firebaseio.com' is configured as the default database endpoint."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/db.ts",
+        "line": 19,
+        "scope": "subscribeToTransactions",
+        "description": "Client queries 'users/${uid}/transactions' directly from client SDK, depending entirely on server-side rules for tenant isolation."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/firebase/config.ts",
+        "line": 29,
+        "description": "Hardcoded Firebase project and database URL defined without corresponding database.rules.json file."
+      }
+    ],
+    "blockers": [
+      "Firebase Realtime Database security rules reside on Google cloud servers and are not committed to repository source control."
+    ],
+    "validation_plan": {
+      "local": "Configure Firebase Emulator Suite with a mock database.rules.json requiring 'auth != null && auth.uid === $uid' and verify that requests without matching UID tokens are rejected.",
+      "deployment": "Project administrator must navigate to the Firebase Console -> Realtime Database -> Rules tab for project 'willowwallet-65699' and verify that rules forbid unauthenticated read/write and enforce strict 'auth.uid === $uid' tenancy isolation."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "willow-login-new-function-eval",
+    "title": "Arbitrary JavaScript Execution via Function Constructor on Firebase Config Input",
+    "description": "In Login.tsx, handleSaveConfig allows users to input a Firebase configuration object. When standard JSON.parse fails, the code falls back to 'new Function(`return ${cleaned};`)()'. If a user pastes a maliciously crafted configuration payload, arbitrary JavaScript executes immediately in the application origin context with access to localStorage, session cookies, and authentication state.",
+    "root_cause": "The configuration modal invokes the dynamic 'new Function' JavaScript constructor as an expression evaluator fallback instead of restricting input parsing to strict JSON.",
+    "intended_behavior": "Firebase configuration text input must be parsed strictly using JSON.parse or a safe key-value regular expression parser, rejecting any executable JavaScript code.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/pages/Login.tsx",
+        "line": 110,
+        "scope": "handleSaveConfig",
+        "description": "User submits configuration string via the Firebase Config modal form."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/pages/Login.tsx",
+        "line": 114,
+        "scope": "handleSaveConfig",
+        "description": "Regex removes variable declaration prefixes and trailing semicolons, leaving arbitrary executable syntax intact."
+      },
+      {
+        "kind": "sink",
+        "file": "src/pages/Login.tsx",
+        "line": 121,
+        "scope": "handleSaveConfig",
+        "description": "When JSON.parse throws, 'new Function(`return ${cleaned};`)()' executes the unsanitized string within the client origin."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/pages/Login.tsx",
+        "line": 121,
+        "description": "const fn = new Function(`return ${cleaned};`); parsed = fn(); dynamically executes input text."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "user_interaction",
+        "description": "User is tricked into copying and pasting a malicious Firebase configuration string into the configuration modal."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Attacker crafts a rogue Firebase configuration snippet containing executable JavaScript and entices the user to import it.",
+      "payloads": [
+        "{ apiKey: 'fake', databaseURL: 'https://fake.firebaseio.com', xss: (()=>{ alert(document.domain); return 'test'; })() }"
+      ],
+      "instructions": [
+        "Open the WillowWallet login page in a browser.",
+        "Click the 'Konfigurasi Firebase' button to open the modal.",
+        "Paste the payload into the configuration textarea and click 'Simpan & Terapkan'."
+      ],
+      "observed_result": "The JavaScript payload executes immediately in the browser window context, displaying an alert dialog with the document domain."
+    },
+    "remediation": {
+      "strategy": "Completely eliminate the dynamic 'new Function' constructor fallback. Require configuration input to be valid JSON and parse only with JSON.parse.",
+      "code_changes": [
+        {
+          "file_name": "src/pages/Login.tsx",
+          "fixed_code": "let parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch {\n  setConfigError('Format tidak valid. Pastikan JSON Firebase config benar.');\n  return;\n}"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "medium",
+        "reason": "Requires user interaction to paste the payload, but configuration import modals are frequent targets for social engineering and setup tutorials."
+      },
+      "impact": {
+        "score": "high",
+        "reason": "Complete client-side code execution in the application origin, allowing token theft, DOM manipulation, and data tampering."
+      },
+      "overall_severity": "high"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Confirmed by direct source inspection of the new Function instantiation in Login.tsx."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "willow-sandbox-prototype-pollution",
+    "title": "Prototype Pollution in Sandbox Database Path Traversal",
+    "description": "In src/firebase/config.ts, the SandboxDatabase mock handles database operations when operating without cloud credentials. Methods setValueAtPath and updateValueAtPath split path strings by '/' and traverse nested objects without verifying that property keys exclude '__proto__', 'constructor', or 'prototype'. Writing to a path containing '__proto__' mutates Object.prototype for all JavaScript objects in the application realm.",
+    "root_cause": "Object path traversal does not check or reject forbidden prototype keys ('__proto__', 'constructor', 'prototype') before dynamically setting properties on current[part].",
+    "intended_behavior": "All path segments must be checked against an allowlist or forbidden key filter to prevent traversal onto Object.prototype or Function prototype.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/firebase/config.ts",
+        "line": 101,
+        "scope": "SandboxDatabase.setValueAtPath",
+        "description": "Receives a path string and value to update the local mock database."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/firebase/config.ts",
+        "line": 106,
+        "scope": "SandboxDatabase.setValueAtPath",
+        "description": "Path segments are traversed in a loop without validating against special prototype properties."
+      },
+      {
+        "kind": "sink",
+        "file": "src/firebase/config.ts",
+        "line": 113,
+        "scope": "SandboxDatabase.setValueAtPath",
+        "description": "Assigns value to current[parts[parts.length - 1]], mutating Object.prototype if part equals '__proto__'."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/firebase/config.ts",
+        "line": 110,
+        "description": "current = current[part] accesses Object.prototype when part is '__proto__'."
+      },
+      {
+        "file": "src/firebase/config.ts",
+        "line": 137,
+        "description": "Object.assign(current[targetKey], updates) assigns properties directly onto target prototype."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "system_configuration",
+        "description": "Application is in sandbox mode (activeConfig is null or WILLOW_FORCE_SANDBOX is enabled)."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Attacker supplies a crafted backup file or triggers a database write with path containing '__proto__'.",
+      "payloads": [
+        "users/dummy/__proto__/polluted"
+      ],
+      "instructions": [
+        "In browser developer console or via crafted restore path, execute: window.localStorage.setItem('WILLOW_FORCE_SANDBOX', 'true').",
+        "Call SandboxDatabase.setValueAtPath('users/dummy/__proto__/polluted', true).",
+        "Evaluate ({}).polluted in console."
+      ],
+      "observed_result": "The expression ({}).polluted evaluates to true, demonstrating that Object.prototype has been altered globally."
+    },
+    "remediation": {
+      "strategy": "Validate path segments against a forbidden set containing '__proto__', 'constructor', and 'prototype', rejecting any paths that reference these properties.",
+      "code_changes": [
+        {
+          "file_name": "src/firebase/config.ts",
+          "fixed_code": "const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);\nconst parts = path.split('/').filter(p => Boolean(p) && !FORBIDDEN_KEYS.has(p));"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "low",
+        "reason": "Affects local sandbox storage mode and requires control over database write paths or backup import keys."
+      },
+      "impact": {
+        "score": "medium",
+        "reason": "Mutates Object.prototype for the entire JavaScript runtime context, causing type confusion or logic bypass."
+      },
+      "overall_severity": "medium"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Confirmed by reviewing path splitting and unchecked property assignment in SandboxDatabase."
+    }
+  }
+]

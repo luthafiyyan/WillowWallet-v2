@@ -1,0 +1,267 @@
+[
+  {
+    "canonical_refs": {
+      "surface": "browser-content-security-policy",
+      "boundary": "browser-runtime-to-third-party-domains",
+      "subsystem": "web-security-headers",
+      "attack_class": "missing-security-headers"
+    },
+    "surface": "browser-content-security-policy",
+    "boundary": "browser-runtime-to-third-party-domains",
+    "subsystem": "web-security-headers",
+    "attack_class": "missing-security-headers",
+    "starting_paths": [
+      "index.html"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "new",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-web-headers",
+    "reviewed_paths": [
+      "index.html"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-web-headers",
+        "reviewed_paths": [
+          "index.html"
+        ],
+        "invariant": "Web entrypoint should specify restrictive Content-Security-Policy meta tag or headers.",
+        "method": "source",
+        "result": "Confirmed index.html currently lacks a Content-Security-Policy meta tag; recorded as hardening recommendation.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "coverage_id": "browser-content-security-policy::browser-runtime-to-third-party-domains::web-security-headers::missing-security-headers"
+  },
+  {
+    "canonical_refs": {
+      "surface": "client-pwa-service-worker",
+      "boundary": "browser-cache-to-local-offline-storage",
+      "subsystem": "caching-and-offline",
+      "attack_class": "unauthenticated-cache-disclosure"
+    },
+    "surface": "client-pwa-service-worker",
+    "boundary": "browser-cache-to-local-offline-storage",
+    "subsystem": "caching-and-offline",
+    "attack_class": "unauthenticated-cache-disclosure",
+    "starting_paths": [
+      "public/sw.js",
+      "src/services/pwa.ts"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "new",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "hunter-pwa-sw",
+    "reviewed_paths": [
+      "public/sw.js",
+      "src/services/pwa.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-pwa-sw",
+        "reviewed_paths": [
+          "public/sw.js",
+          "src/services/pwa.ts"
+        ],
+        "invariant": "Service Worker fetch handler must not cache sensitive live Firebase API responses or auth tokens.",
+        "method": "source",
+        "result": "Verified that fetch handler explicitly ignores non-GET requests and excludes firebaseio.com and googleapis.com.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "coverage_id": "client-pwa-service-worker::browser-cache-to-local-offline-storage::caching-and-offline::unauthenticated-cache-disclosure"
+  },
+  {
+    "canonical_refs": {
+      "surface": "firebase-config-input",
+      "boundary": "untrusted-user-input-to-client-execution",
+      "subsystem": "authentication-and-configuration",
+      "attack_class": "code-injection"
+    },
+    "surface": "firebase-config-input",
+    "boundary": "untrusted-user-input-to-client-execution",
+    "subsystem": "authentication-and-configuration",
+    "attack_class": "code-injection",
+    "starting_paths": [
+      "src/pages/Login.tsx",
+      "src/firebase/config.ts"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "new",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-client-auth",
+    "reviewed_paths": [
+      "src/pages/Login.tsx"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-client-auth",
+        "reviewed_paths": [
+          "src/pages/Login.tsx"
+        ],
+        "invariant": "User-supplied Firebase configuration must never be evaluated as executable JavaScript code.",
+        "method": "source",
+        "result": "Found dynamic code evaluation using new Function constructor fallback in handleSaveConfig.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "willow-login-new-function-eval"
+    ],
+    "unresolved": [],
+    "coverage_id": "firebase-config-input::untrusted-user-input-to-client-execution::authentication-and-configuration::code-injection"
+  },
+  {
+    "canonical_refs": {
+      "surface": "firebase-rtdb-authorization",
+      "boundary": "client-app-to-cloud-database-api",
+      "subsystem": "cloud-backend-storage",
+      "attack_class": "broken-access-control"
+    },
+    "surface": "firebase-rtdb-authorization",
+    "boundary": "client-app-to-cloud-database-api",
+    "subsystem": "cloud-backend-storage",
+    "attack_class": "broken-access-control",
+    "starting_paths": [
+      "src/firebase/config.ts",
+      "src/services/db.ts"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "new",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-firebase-rules",
+    "reviewed_paths": [
+      "src/firebase/config.ts",
+      "src/services/db.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-firebase-rules",
+        "reviewed_paths": [
+          "src/firebase/config.ts",
+          "src/services/db.ts"
+        ],
+        "invariant": "Multi-tenant database access must be guarded by server-side rules verifying auth.uid === $uid.",
+        "method": "source",
+        "result": "Server-side Firebase Realtime Database rules are not present in repository source control.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "willow-firebase-rtdb-unverified-rules"
+    ],
+    "unresolved": [],
+    "coverage_id": "firebase-rtdb-authorization::client-app-to-cloud-database-api::cloud-backend-storage::broken-access-control"
+  },
+  {
+    "canonical_refs": {
+      "surface": "sandbox-database-path-traversal",
+      "boundary": "untrusted-key-to-object-prototype",
+      "subsystem": "data-storage-and-backup",
+      "attack_class": "prototype-pollution"
+    },
+    "surface": "sandbox-database-path-traversal",
+    "boundary": "untrusted-key-to-object-prototype",
+    "subsystem": "data-storage-and-backup",
+    "attack_class": "prototype-pollution",
+    "starting_paths": [
+      "src/firebase/config.ts",
+      "src/services/db.ts"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "new",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-sandbox-db",
+    "reviewed_paths": [
+      "src/firebase/config.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-sandbox-db",
+        "reviewed_paths": [
+          "src/firebase/config.ts"
+        ],
+        "invariant": "Database path traversal must reject special prototype properties (__proto__, constructor, prototype).",
+        "method": "source",
+        "result": "Identified unchecked path splitting and property assignment mutating Object.prototype in SandboxDatabase.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "willow-sandbox-prototype-pollution"
+    ],
+    "unresolved": [],
+    "coverage_id": "sandbox-database-path-traversal::untrusted-key-to-object-prototype::data-storage-and-backup::prototype-pollution"
+  },
+  {
+    "canonical_refs": {
+      "surface": "transaction-export-csv",
+      "boundary": "in-app-data-to-external-spreadsheet",
+      "subsystem": "reporting-and-export",
+      "attack_class": "formula-injection"
+    },
+    "surface": "transaction-export-csv",
+    "boundary": "in-app-data-to-external-spreadsheet",
+    "subsystem": "reporting-and-export",
+    "attack_class": "formula-injection",
+    "starting_paths": [
+      "src/pages/Home.tsx",
+      "src/pages/Profile.tsx"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "new",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "hunter-export-csv",
+    "reviewed_paths": [
+      "src/pages/Home.tsx",
+      "src/pages/Profile.tsx"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "hunter-export-csv",
+        "reviewed_paths": [
+          "src/pages/Home.tsx",
+          "src/pages/Profile.tsx"
+        ],
+        "invariant": "Exported CSV cells starting with formula characters (=, +, -, @) must be neutralized prior to serialization.",
+        "method": "source",
+        "result": "Confirmed CSV export only wraps cells in quotes without prefixing single quote neutralization.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "willow-export-csv-formula-injection"
+    ],
+    "unresolved": [],
+    "coverage_id": "transaction-export-csv::in-app-data-to-external-spreadsheet::reporting-and-export::formula-injection"
+  }
+]

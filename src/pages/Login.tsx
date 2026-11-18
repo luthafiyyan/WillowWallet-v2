@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Wallet, 
   Database, 
   AlertCircle, 
   X, 
   Copy, 
   Check, 
-  ChevronDown, 
-  ChevronRight, 
-  Globe 
+  Globe,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { auth, saveFirebaseConfig, clearFirebaseConfig, isSandboxMode } from '../firebase/config';
+import { auth, saveFirebaseConfig, isSandboxMode } from '../firebase/config';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -19,73 +19,27 @@ interface LoginProps {
   onLangChange: (lang: 'ID' | 'EN') => void;
 }
 
-const TRANSLATIONS = {
-  ID: {
-    tagline: "WillowWallet",
-    titleLine1: "Halo kembali!",
-    titleLine2: "Kelola keuangan dengan bijak.",
-    description: "Catat pemasukan, pantau pengeluaran, dan capai tujuan keuanganmu dengan asisten manajemen finansial.",
-    continueWithGoogle: "Lanjutkan dengan Google",
-    connectOwnFirebase: "Hubungkan ke Firebase Sendiri",
-    connectOwnFirebaseSubtitle: "Gunakan Realtime DB pribadi",
-    changeFirebaseCreds: "Ganti Kredensial Firebase",
-    unauthorizedDomain: "Domain Belum Diotorisasi di Firebase",
-    loginFailed: "Gagal Masuk Akun",
-    unauthorizedHelpTitle: "Cara Mengatasi (Hanya Butuh 1 Menit):",
-    unauthorizedHelp1: "Buka",
-    unauthorizedHelp2: "Pilih menu Authentication > tab Settings.",
-    unauthorizedHelp3: "Cari bagian Authorized Domains (Domain yang disetujui), lalu tambahkan domain berikut:",
-    unauthorizedNote: "* Setelah menambahkan domain tersebut ke Firebase Console, coba klik login lagi di atas.",
-    genericErrorHelp: "Pastikan konfigurasi Firebase Anda benar dan koneksi internet stabil.",
-    slogan: "Sistem Keuangan Mandiri & Aman",
-    copyright: "© 2026 WillowWallet. Seluruh hak cipta dilindungi undang-undang.",
-    encryptionInfo: "Keamanan Enkripsi Firebase Realtime DB & SSL"
-  },
-  EN: {
-    tagline: "WillowWallet",
-    titleLine1: "Welcome back!",
-    titleLine2: "Manage finances wisely.",
-    description: "Record income, track expenses, and achieve your financial goals with a financial management assistant.",
-    continueWithGoogle: "Continue with Google",
-    connectOwnFirebase: "Connect Your Own Firebase",
-    changeFirebaseCreds: "Change Firebase Credentials",
-    unauthorizedDomain: "Domain Unauthorized in Firebase",
-    loginFailed: "Login Failed",
-    unauthorizedHelpTitle: "How to Resolve (Takes Only 1 Minute):",
-    unauthorizedHelp1: "Open",
-    unauthorizedHelp2: "Select Authentication menu > Settings tab.",
-    unauthorizedHelp3: "Find Authorized Domains section, then add the following domains:",
-    unauthorizedNote: "* After adding these domains to Firebase Console, try logging in again above.",
-    genericErrorHelp: "Make sure your Firebase config is correct and your internet connection is stable.",
-    slogan: "Self-Sovereign & Secure Financial System",
-    copyright: "© 2026 WillowWallet. All rights reserved.",
-    encryptionInfo: "Firebase Realtime DB & SSL Encryption Security"
-  }
-};
-
 export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange }) => {
-  const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [configText, setConfigText] = useState('');
   const [configError, setConfigError] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [copiedDomain, setCopiedDomain] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (showConfigModal) setShowConfigModal(false);
-        if (showLangDropdown) setShowLangDropdown(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showConfigModal, showLangDropdown]);
-
-  const t = TRANSLATIONS[lang];
+  }, [showConfigModal]);
 
   const handleGoogleLogin = async () => {
     setLoginError(null);
+    setIsSubmitting(true);
     try {
       await auth.signInWithGoogle();
       onLoginSuccess();
@@ -98,7 +52,20 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
       } else {
         setLoginError(errorMessage);
       }
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleSandboxLogin = () => {
+    localStorage.setItem('WILLOW_FORCE_SANDBOX', 'true');
+    localStorage.setItem('WILLOW_SANDBOX_USER', JSON.stringify({
+      uid: 'sandbox_user_demo',
+      displayName: lang === 'ID' ? 'Tamu Demo' : 'Guest Demo',
+      email: 'demo@willowwallet.local',
+      photoURL: null
+    }));
+    window.location.reload();
   };
 
   const handleCopyText = (text: string) => {
@@ -107,6 +74,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
     setTimeout(() => setCopiedDomain(null), 2000);
   };
 
+  // Secure JSON-only parser without dynamic new Function eval
   const handleSaveConfig = (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -118,8 +86,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
       try {
         parsed = JSON.parse(cleaned);
       } catch {
-        const fn = new Function(`return ${cleaned};`);
-        parsed = fn();
+        setConfigError(lang === 'ID' 
+          ? 'Format tidak valid. Pastikan JSON Firebase config benar (JSON murni).' 
+          : 'Invalid format. Please ensure valid JSON Firebase config.');
+        return;
       }
 
       if (parsed && parsed.apiKey && parsed.databaseURL) {
@@ -127,540 +97,231 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, lang, onLangChange
         setShowConfigModal(false);
         setConfigError('');
       } else {
-        setConfigError('Config must contain at least "apiKey" and "databaseURL".');
+        setConfigError(lang === 'ID' 
+          ? 'Konfigurasi harus berisi minimal "apiKey" dan "databaseURL".' 
+          : 'Config must contain at least "apiKey" and "databaseURL".');
       }
-    } catch (err: any) {
-      setConfigError('Format tidak valid. Pastikan JSON atau object Firebase config benar.');
+    } catch {
+      setConfigError(lang === 'ID' 
+        ? 'Format tidak valid. Pastikan format JSON Firebase config benar.' 
+        : 'Invalid format. Please ensure valid JSON Firebase config.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFBFD] dark:bg-[#060B18] text-slate-800 dark:text-slate-100 flex flex-col justify-between items-center relative overflow-hidden font-sans select-none">
+    <div className="min-h-screen bg-[#0F2D21] text-white flex flex-col justify-between items-center relative overflow-hidden font-sans select-none px-6 py-6 sm:py-8">
       
-      {/* Background Gradient Blobs mimicking reference image perfectly */}
-      <div className="absolute top-[-10%] left-[-10%] w-[380px] h-[380px] rounded-full bg-[#FEF3C7]/45 dark:bg-[#FEF3C7]/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[-15%] w-[450px] h-[450px] rounded-full bg-[#EEF2FF]/60 dark:bg-[#E0E7FF]/5 blur-[130px] pointer-events-none" />
-      {/* Floating Orange Accent Dot */}
-      <div className="absolute top-[28%] left-[44%] w-4.5 h-4.5 rounded-full bg-[#F59E0B] opacity-80 animate-pulse pointer-events-none hidden md:block" />
+      {/* Background Radial Glow */}
+      <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[520px] h-[520px] rounded-full bg-[#18533C]/40 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[380px] h-[380px] rounded-full bg-[#2E7A5A]/20 blur-[100px] pointer-events-none" />
 
-      {/* 1. Header Bar */}
-      <header className="w-full max-w-6xl mx-auto px-6 py-5 flex items-center justify-between z-20">
-        {/* Brand Logo Card */}
+      {/* Top Header: Step Indicator & Skip / Language */}
+      <header className="w-full max-w-sm flex items-center justify-between z-10 pt-2">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-[#E8EDF4] dark:border-slate-700/60 flex items-center justify-center p-2">
-            <img 
-              src="/logo.png" 
-              alt="Willow Wallet Icon" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-bold text-[#111827] dark:text-slate-200">WillowWallet</span>
+          <span className="text-xs font-semibold tracking-wider text-white/90">01 / 03</span>
+          <div className="flex items-center gap-1 w-20">
+            <div className="h-1 flex-1 bg-white rounded-full"></div>
+            <div className="h-1 flex-1 bg-white/25 rounded-full"></div>
+            <div className="h-1 flex-1 bg-white/25 rounded-full"></div>
           </div>
         </div>
 
-        {/* Language Selection Dropdown Button */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onLangChange(lang === 'ID' ? 'EN' : 'ID')}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white/90 transition-all border border-white/15"
+            title="Ganti Bahasa / Switch Language"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>{lang}</span>
+          </button>
           
-          <div className="relative">
-            <button 
-              type="button"
-              onClick={() => setShowLangDropdown(!showLangDropdown)}
-              className="bg-white dark:bg-slate-800 border border-[#E8EDF4] dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 shadow-soft px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-semibold text-[#111827] dark:text-slate-200 cursor-pointer active:scale-95 transition-all"
-            >
-              {lang === 'ID' ? (
-                <>
-                  <div className="w-4 h-4 rounded-full overflow-hidden border border-slate-200 flex flex-col flex-shrink-0">
-                    <div className="h-1/2 bg-[#FF0000]" />
-                    <div className="h-1/2 bg-[#FFFFFF]" />
-                  </div>
-                  <span>ID</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-4 h-4 rounded-full overflow-hidden border border-slate-200 flex flex-col justify-between flex-shrink-0 relative bg-white">
-                    <div className="h-[2px] bg-[#B31942] w-full" />
-                    <div className="h-[2px] bg-white w-full" />
-                    <div className="h-[2px] bg-[#B31942] w-full" />
-                    <div className="h-[2px] bg-white w-full" />
-                    <div className="h-[2px] bg-[#B31942] w-full" />
-                    <div className="h-[2px] bg-white w-full" />
-                    <div className="h-[2px] bg-[#B31942] w-full" />
-                    <div className="absolute top-0 left-0 w-[7px] h-[9px] bg-[#0A3161] flex flex-wrap p-[0.5px] items-center justify-center content-center gap-[0.2px]">
-                      <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                      <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                      <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                      <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                    </div>
-                  </div>
-                  <span>EN</span>
-                </>
-              )}
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
- 
-            {/* Dropdown Menu Portal */}
-            <AnimatePresence>
-              {showLangDropdown && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-30" 
-                    onClick={() => setShowLangDropdown(false)} 
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-800 border border-[#E8EDF4] dark:border-slate-700 rounded-2xl shadow-large z-40 p-1.5 overflow-hidden"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onLangChange('ID');
-                        setShowLangDropdown(false);
-                      }}
-                      className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer ${lang === 'ID' ? 'bg-[#10B981]/10 text-[#10B981]' : 'hover:bg-slate-50 dark:hover:bg-slate-750 text-text-primary dark:text-slate-200'}`}
-                    >
-                      <div className="w-4 h-4 rounded-full overflow-hidden border border-slate-200 flex flex-col flex-shrink-0">
-                        <div className="h-1/2 bg-[#FF0000]" />
-                        <div className="h-1/2 bg-[#FFFFFF]" />
-                      </div>
-                      Bahasa Indonesia
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onLangChange('EN');
-                        setShowLangDropdown(false);
-                      }}
-                      className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer ${lang === 'EN' ? 'bg-[#10B981]/10 text-[#10B981]' : 'hover:bg-slate-50 dark:hover:bg-slate-750 text-text-primary dark:text-slate-200'}`}
-                    >
-                      <div className="w-4 h-4 rounded-full overflow-hidden border border-slate-200 flex flex-col justify-between flex-shrink-0 relative bg-white">
-                        <div className="h-[2px] bg-[#B31942] w-full" />
-                        <div className="h-[2px] bg-white w-full" />
-                        <div className="h-[2px] bg-[#B31942] w-full" />
-                        <div className="h-[2px] bg-white w-full" />
-                        <div className="h-[2px] bg-[#B31942] w-full" />
-                        <div className="h-[2px] bg-white w-full" />
-                        <div className="h-[2px] bg-[#B31942] w-full" />
-                        <div className="absolute top-0 left-0 w-[7px] h-[9px] bg-[#0A3161] flex flex-wrap p-[0.5px] items-center justify-center content-center gap-[0.2px]">
-                          <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                          <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                          <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                          <div className="w-0.5 h-0.5 bg-white rounded-full scale-[0.7]" />
-                        </div>
-                      </div>
-                      English (US)
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
+          <button
+            type="button"
+            onClick={handleSandboxLogin}
+            className="text-xs font-medium text-white/80 hover:text-white px-2 py-1 transition-colors"
+          >
+            {lang === 'ID' ? 'Lewati' : 'Skip'}
+          </button>
         </div>
       </header>
 
-      {/* 2. Main Responsive Split Layout */}
-      <main className="w-full max-w-6xl mx-auto px-6 flex-grow flex flex-col md:flex-row items-center justify-center gap-10 lg:gap-16 z-10 py-4">
+      {/* Center Hero: Title & 3D Leather Wallet Visual */}
+      <main className="w-full max-w-sm flex flex-col items-center text-center z-10 my-auto py-4">
         
-        {/* Left Column: Typography and Gorgeous 3D Wallet & Coins Illustration */}
-        <div className="w-full md:w-1/2 flex flex-col md:items-start text-left space-y-6 md:pr-4">
-          <div className="space-y-3.5 max-w-lg">
-            <span className="text-xs font-bold text-[#10B981] dark:text-emerald-400 tracking-widest uppercase">
-              {t.tagline}
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold tracking-tight text-[#111827] dark:text-slate-100 leading-[1.15]">
-              {t.titleLine1}<br />{t.titleLine2.split(' ')[0]} <span className="text-[#10B981] dark:text-emerald-400 font-extrabold">{t.titleLine2.split(' ')[1]}</span> {t.titleLine2.split(' ').slice(2).join(' ')}
-            </h2>
-            <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-              {t.description}
-            </p>
-          </div>
+        {/* Title */}
+        <div className="space-y-1 mb-2">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            Your Money <br />
+            <span className="text-[#88E5A7] font-semibold italic">Better Days</span>
+          </h1>
+          <p className="text-white/80 text-sm max-w-xs mx-auto pt-2 leading-relaxed font-normal">
+            {lang === 'ID' 
+              ? 'Kelola, rencanakan, dan kembangkan keuanganmu di satu tempat yang mudah.'
+              : 'Save, spend, and grow your wealth — all in one simple place.'}
+          </p>
+        </div>
 
-          {/* Interactive CSS 3D Wallet & Coins Section */}
-          <div className="relative w-full h-56 sm:h-64 flex items-center justify-center md:justify-start pt-4 select-none">
+        {/* 3D Realistic Leather Wallet on Podium (Crafted Vector Art) */}
+        <div className="relative w-64 h-64 sm:w-72 sm:h-72 my-4 flex items-center justify-center">
+          
+          {/* Ambient Platform Shadow */}
+          <div className="absolute bottom-6 w-56 h-12 bg-black/45 rounded-full blur-xl pointer-events-none" />
+
+          {/* Stepped Pedestal Podiums */}
+          <div className="absolute bottom-6 w-52 h-14 bg-gradient-to-b from-[#184433] to-[#0D241A] rounded-full border border-white/10 shadow-lg"></div>
+          <div className="absolute bottom-10 w-44 h-11 bg-gradient-to-b from-[#215A44] to-[#123628] rounded-full border border-white/15 shadow-inner"></div>
+
+          {/* Floating Leather Wallet with Card */}
+          <div className="relative -rotate-12 hover:rotate-0 transition-transform duration-500 ease-out z-10 cursor-pointer drop-shadow-2xl">
             
-            {/* Soft backdrop glow */}
-            <div className="absolute left-10 w-44 h-44 rounded-full bg-emerald-300/30 dark:bg-emerald-600/10 blur-2xl pointer-events-none -z-10" />
+            {/* Credit Card Popping Out */}
+            <div className="absolute -top-12 left-6 w-36 h-24 bg-gradient-to-br from-[#1E293B] via-[#0F172A] to-[#0A0F1D] rounded-xl border border-white/20 shadow-xl p-2.5 flex flex-col justify-between overflow-hidden">
+              <div className="flex items-center justify-between">
+                <div className="w-6 h-4.5 bg-gradient-to-tr from-amber-300 to-amber-500 rounded-sm border border-amber-200/50 flex items-center justify-center">
+                  <div className="w-4 h-2.5 border-t border-b border-black/30"></div>
+                </div>
+                <div className="flex -space-x-1">
+                  <div className="w-3.5 h-3.5 rounded-full bg-red-500/90"></div>
+                  <div className="w-3.5 h-3.5 rounded-full bg-amber-400/90"></div>
+                </div>
+              </div>
+              <div className="text-[8px] font-mono tracking-widest text-white/70">
+                •••• 4820
+              </div>
+            </div>
 
-            {/* Micro leaves background elements */}
-            <div className="absolute top-[20%] left-[5%] w-8 h-8 rounded-tr-3xl rounded-bl-3xl bg-emerald-400/20 rotate-45 pointer-events-none" />
-            <div className="absolute bottom-[25%] left-[45%] w-6 h-6 rounded-tr-3xl rounded-bl-3xl bg-emerald-400/30 -rotate-12 pointer-events-none" />
-
-            <div className="relative flex items-center">
+            {/* Dark Green Stitched Leather Wallet Body */}
+            <div className="w-44 h-36 bg-gradient-to-br from-[#1A4B37] via-[#123628] to-[#0A2017] rounded-3xl border-2 border-[#2C7557] shadow-2xl relative p-3 flex flex-col justify-between overflow-hidden">
               
-              {/* Green Wallet Container */}
-              <motion.div
-                animate={{ 
-                  y: [0, -6, 0],
-                  rotate: [1, -1, 1]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 4,
-                  ease: "easeInOut"
-                }}
-                className="relative w-48 h-36 bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] rounded-[32px] shadow-large border-t border-emerald-300/40 p-5 flex flex-col justify-between overflow-hidden select-none pointer-events-none"
-              >
-                {/* Shiny highlight lines across the wallet */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
-                
-                {/* Gold Button snap */}
-                <div className="absolute right-5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#F59E0B] border-2 border-emerald-100 flex items-center justify-center shadow-md">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-700/30" />
-                </div>
+              {/* Stitching Lines (Dotted White) */}
+              <div className="absolute inset-1.5 border border-dashed border-white/25 rounded-2xl pointer-events-none"></div>
 
-                {/* Stitched seam effect */}
-                <div className="absolute inset-2.5 rounded-[22px] border border-dashed border-emerald-400/40 pointer-events-none" />
+              {/* Wallet Top Opening */}
+              <div className="w-full h-2.5 bg-[#091D15] rounded-full opacity-80 shadow-inner"></div>
 
-                {/* Embossed Logo monogram */}
-                <div className="flex items-center gap-2 z-10">
-                  <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-xs flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-white stroke-[2.2]" />
-                  </div>
-                  <span className="text-white text-[11px] font-extrabold tracking-widest uppercase">
-                    WILLOW
-                  </span>
-                </div>
-
-                <div className="z-10">
-                  <div className="h-1.5 w-16 bg-[#10B981]/40 rounded-full mb-1.5" />
-                  <div className="text-[10px] text-white/70 font-semibold tracking-wider font-mono">
-                    RP **** ****
+              {/* Wallet Flap & Hardware */}
+              <div className="absolute bottom-4 left-3 right-3 flex items-center justify-between">
+                <div className="w-10 h-7 bg-[#153E2E] rounded-xl border border-white/20 shadow-md flex items-center justify-center">
+                  {/* Brass Snap Button */}
+                  <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] shadow-md border border-amber-100 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-900/60"></div>
                   </div>
                 </div>
-              </motion.div>
+                <span className="text-[9px] font-bold tracking-widest text-white/40 uppercase">WILLOW</span>
+              </div>
+            </div>
 
-              {/* Gold Coin 1 (Front Left, Large) */}
-              <motion.div
-                animate={{ y: [0, -12, 0] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 3,
-                  delay: 0.2,
-                  ease: "easeInOut"
-                }}
-                className="absolute -top-10 left-32 w-16 h-16 rounded-full bg-gradient-to-br from-[#FBDF5F] via-[#F59E0B] to-[#D97706] shadow-md border-2 border-[#FEF3C7] flex items-center justify-center select-none pointer-events-none"
-              >
-                {/* 3D embossed circle border */}
-                <div className="w-[84%] h-[84%] rounded-full border border-amber-600/30 flex items-center justify-center font-bold text-amber-900 text-sm">
-                  Rp
-                </div>
-              </motion.div>
+          </div>
+        </div>
 
-              {/* Gold Coin 2 (Back Left, Medium) */}
-              <motion.div
-                animate={{ y: [0, -16, 0] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 3.5,
-                  delay: 0.8,
-                  ease: "easeInOut"
-                }}
-                className="absolute -top-16 left-8 w-12 h-12 rounded-full bg-gradient-to-br from-[#FBDF5F] via-[#F59E0B] to-[#D97706] shadow-sm border-2 border-[#FEF3C7] flex items-center justify-center select-none"
-              >
-                <div className="w-[80%] h-[80%] rounded-full border border-amber-600/30 flex items-center justify-center font-bold text-amber-900 text-xs">
-                  Rp
-                </div>
-              </motion.div>
-
-              {/* Gold Coin 3 (Side Right, Small) */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2.8,
-                  delay: 1.4,
-                  ease: "easeInOut"
-                }}
-                className="absolute top-20 left-[180px] w-9 h-9 rounded-full bg-gradient-to-br from-[#FBDF5F] via-[#F59E0B] to-[#D97706] shadow-sm border border-[#FEF3C7] flex items-center justify-center select-none"
-              >
-                <div className="w-[80%] h-[80%] rounded-full border border-amber-600/20 flex items-center justify-center font-bold text-amber-900 text-[10px]">
-                  Rp
-                </div>
-              </motion.div>
-
+        {/* Error message if any */}
+        {loginError && (
+          <div className="w-full p-3 rounded-2xl bg-red-500/20 border border-red-500/40 text-red-200 text-xs mb-3 text-left flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">{lang === 'ID' ? 'Gagal Masuk Akun' : 'Login Failed'}</p>
+              <p className="text-[11px] text-red-300 mt-0.5">{loginError}</p>
             </div>
           </div>
-        </div>
-
-        {/* Right Column: High Fidelity Login Cards and Action Panel */}
-        <div className="w-full md:w-1/2 max-w-md flex flex-col justify-center space-y-6">
-          
-          <div className="liquid-glass-modal rounded-[32px] p-6.5 sm:p-8 flex flex-col gap-5">
-            
-            {/* Google Authentication Trigger Card */}
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={handleGoogleLogin}
-              className="w-full liquid-glass-card liquid-glass-card-interactive p-5 rounded-2xl flex items-center justify-between transition-all duration-200 cursor-pointer"
-            >
-              <div className="flex items-center gap-4">
-                {/* Colored Google G Icon using custom HTML vectors */}
-                <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                    />
-                  </svg>
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-[#111827] dark:text-slate-100">
-                  {t.continueWithGoogle}
-                </span>
-              </div>
-              <ChevronRight className="w-4.5 h-4.5 text-slate-400" />
-            </motion.button>
-
-            {/* Error Message Handler */}
-            {loginError && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 space-y-3 text-left text-xs text-[#111827] dark:text-slate-200"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex gap-2 text-rose-500 font-bold">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>
-                      {loginError === 'auth/unauthorized-domain' 
-                        ? t.unauthorizedDomain
-                        : t.loginFailed}
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => setLoginError(null)}
-                    className="p-1 rounded-md hover:bg-rose-500/10 text-rose-500 transition-colors cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {loginError === 'auth/unauthorized-domain' ? (
-                  <div className="space-y-3 text-[11px] leading-relaxed">
-                    <p className="text-slate-500 dark:text-slate-300">
-                      Firebase menolak login karena domain aplikasi saat ini belum didaftarkan di setelan Authorized Domains proyek Firebase Anda.
-                    </p>
-                    
-                    <div className="space-y-2 bg-white dark:bg-slate-900 p-3 rounded-xl border border-rose-500/20">
-                      <p className="font-bold text-[#111827] dark:text-slate-200">
-                        {t.unauthorizedHelpTitle}
-                      </p>
-                      <ol className="list-decimal list-inside space-y-1.5 text-slate-500 dark:text-slate-400 pl-1">
-                        <li>
-                          {t.unauthorizedHelp1}{' '}
-                          <a 
-                            href="https://console.firebase.google.com/" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-[#10B981] hover:underline font-bold inline-flex items-center gap-0.5"
-                          >
-                            Firebase Console →
-                          </a>
-                        </li>
-                        <li>
-                          {t.unauthorizedHelp2}
-                        </li>
-                        <li>
-                          {t.unauthorizedHelp3}
-                        </li>
-                      </ol>
-
-                      <div className="space-y-1.5 mt-3 pt-2.5 border-t border-[#E8EDF4] dark:border-slate-850">
-                        {/* Domain 1: Current Hostname */}
-                        <div className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-[#E8EDF4] dark:border-slate-700">
-                          <code className="font-mono text-[10px] text-[#10B981] truncate">
-                            {window.location.hostname}
-                          </code>
-                          <button
-                            type="button"
-                            onClick={() => handleCopyText(window.location.hostname)}
-                            className="p-1 rounded bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-500 transition-all flex items-center gap-1 cursor-pointer text-[9px] font-bold"
-                          >
-                            {copiedDomain === window.location.hostname ? (
-                              <>
-                               <Check className="w-3 h-3 text-emerald-500" />
-                                Tersalin
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3 h-3" />
-                                Salin
-                              </>
-                            )}
-                          </button>
-                        </div>
-
-                        {/* Domain 2: localhost */}
-                        <div className="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-[#E8EDF4] dark:border-slate-700">
-                          <code className="font-mono text-[10px] text-[#10B981]">
-                            localhost
-                          </code>
-                          <button
-                            type="button"
-                            onClick={() => handleCopyText('localhost')}
-                            className="p-1 rounded bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-500 transition-all flex items-center gap-1 cursor-pointer text-[9px] font-bold"
-                          >
-                            {copiedDomain === 'localhost' ? (
-                              <>
-                                <Check className="w-3 h-3 text-emerald-500" />
-                                Tersalin
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3 h-3" />
-                                Salin
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="text-[10px] text-slate-400 italic">
-                      {t.unauthorizedNote}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 text-[11px]">
-                    <p className="text-slate-500 dark:text-slate-300 leading-relaxed break-words">
-                      {loginError}
-                    </p>
-                    <p className="text-slate-400">
-                      {t.genericErrorHelp}
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-          </div>
-
-          {/* Slogan Text under Card */}
-          <div className="text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
-            {t.slogan}
-          </div>
-
-        </div>
+        )}
 
       </main>
 
-      {/* 3. Global Footer copyright info */}
-      <footer className="w-full text-center py-6 text-xs text-text-secondary dark:text-slate-500 font-semibold border-t border-[#E8EDF4]/40 dark:border-slate-800/40 z-10 bg-white/20 dark:bg-transparent backdrop-blur-xs">
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-center">
-          <div>
-            © 2026 WillowWallet. Developed by{' '}
-            <a 
-              href="https://www.instagram.com/luthafiyyan_/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-primary hover:underline font-bold transition-all"
-            >
-              Luthafiyyan
-            </a>
-          </div>
+      {/* Bottom CTA Button: White Pill "Get Started ->" */}
+      <footer className="w-full max-w-sm flex flex-col items-center gap-3 z-10 pb-2">
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={isSubmitting}
+          className="w-full py-4 px-6 rounded-full bg-white text-[#123628] font-bold text-base shadow-xl shadow-black/25 hover:bg-[#F3FAF5] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer group"
+        >
+          <span>{isSubmitting ? (lang === 'ID' ? 'Menghubungkan...' : 'Connecting...') : (lang === 'ID' ? 'Mulai Sekarang' : 'Get Started')}</span>
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </button>
+
+        <div className="flex items-center justify-between w-full px-2 text-xs text-white/70">
+          <button
+            type="button"
+            onClick={handleSandboxLogin}
+            className="hover:text-white transition-colors underline underline-offset-4"
+          >
+            {lang === 'ID' ? 'Coba Mode Tamu (Demo)' : 'Try Demo Mode'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowConfigModal(true)}
+            className="hover:text-white transition-colors flex items-center gap-1"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>Firebase Config</span>
+          </button>
         </div>
       </footer>
 
-      {/* Firebase manual credential overrides modal sheets */}
+      {/* Firebase Configuration Modal */}
       <AnimatePresence>
         {showConfigModal && (
-          <>
-            {/* Backdrop */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowConfigModal(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
-            />
-            
-            {/* Modal Box */}
-            <div 
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="config-modal-title"
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-[#123628] border border-white/20 rounded-3xl p-6 w-full max-w-md shadow-2xl text-left"
             >
-              <motion.div
-                initial={{ scale: 0.94, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.94, opacity: 0 }}
-                className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-large max-w-md w-full pointer-events-auto border border-[#E8EDF4] dark:border-slate-700 flex flex-col gap-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-5 h-5 text-[#10B981]" />
-                    <h4 id="config-modal-title" className="text-base font-extrabold text-[#111827] dark:text-slate-100">
-                      Konfigurasi Firebase
-                    </h4>
-                  </div>
-                  <button
-                    onClick={() => setShowConfigModal(false)}
-                    className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Database className="w-5 h-5 text-[#88E5A7]" />
+                  <h3 className="font-bold text-white text-base">Konfigurasi Firebase Pribadi</h3>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                <p className="text-xs text-slate-500 dark:text-slate-300 leading-relaxed font-medium">
-                  Tempelkan objek konfigurasi Web Firebase SDK Anda dari Firebase Console di bawah ini. Pastikan menyertakan <code className="bg-slate-50 dark:bg-slate-900 px-1 py-0.5 rounded text-[#10B981] font-mono">databaseURL</code> untuk Realtime Database Anda.
+              <form onSubmit={handleSaveConfig} className="space-y-4">
+                <p className="text-xs text-white/80 leading-relaxed">
+                  Tempel objek konfigurasi Firebase (JSON) Anda untuk menggunakan Realtime Database sendiri:
                 </p>
 
-                <form onSubmit={handleSaveConfig} className="space-y-4">
-                  <div>
-                    <textarea
-                      required
-                      placeholder={`{\n  "apiKey": "AIzaSy...",\n  "authDomain": "willowwallet.firebaseapp.com",\n  "databaseURL": "https://willowwallet.firebaseio.com",\n  "projectId": "willowwallet",\n  ...\n}`}
-                      value={configText}
-                      onChange={(e) => setConfigText(e.target.value)}
-                      rows={8}
-                      className="w-full bg-slate-50 dark:bg-slate-900 font-mono text-xs p-3.5 rounded-xl border border-transparent focus:border-[#10B981] focus:outline-none text-[#111827] dark:text-slate-200 placeholder:text-slate-400"
-                    />
-                  </div>
+                <textarea
+                  value={configText}
+                  onChange={(e) => setConfigText(e.target.value)}
+                  placeholder={`{\n  "apiKey": "AIzaSy...",\n  "databaseURL": "https://..."\n}`}
+                  rows={5}
+                  className="w-full bg-[#0A2017] border border-white/15 rounded-xl p-3 text-xs font-mono text-white placeholder-white/40 focus:outline-none focus:border-[#88E5A7]"
+                />
 
-                  {configError && (
-                    <div className="bg-rose-500/10 text-rose-500 text-xs p-3 rounded-xl flex items-center gap-1.5">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{configError}</span>
-                    </div>
-                  )}
+                {configError && (
+                  <p className="text-xs text-rose-300 bg-rose-500/20 p-2.5 rounded-lg border border-rose-500/30">
+                    {configError}
+                  </p>
+                )}
 
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        clearFirebaseConfig();
-                      }}
-                      className="flex-1 py-3.5 text-xs font-bold rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all active:scale-98 cursor-pointer"
-                    >
-                      Reset ke Sandbox
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 py-3.5 text-xs font-bold rounded-xl bg-[#10B981] hover:bg-[#059669] text-white transition-all active:scale-98 cursor-pointer shadow-soft"
-                    >
-                      Terapkan & Hubungkan
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </div>
-          </>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs text-white/70 hover:text-white"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-[#88E5A7] text-[#123628] font-bold text-xs hover:bg-[#A3EDB9] transition-all"
+                  >
+                    Simpan & Terapkan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

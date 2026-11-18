@@ -136,14 +136,23 @@ export const Profile: React.FC<ProfileProps> = ({
   const handleExportCSV = () => {
     if (transactions.length === 0) return;
     const headers = ['ID', 'Type', 'Category', 'Amount', 'Date', 'Description', 'CreatedAt'];
+    
+    const sanitizeCsvCell = (val: any) => {
+      const s = String(val ?? '');
+      if (/^[=\+\-@\t\r]/.test(s)) {
+        return "'" + s.replace(/"/g, '""');
+      }
+      return s.replace(/"/g, '""');
+    };
+
     const rows = transactions.map(item => [
-      item.id,
-      item.type,
-      item.category,
-      item.amount,
-      item.date,
-      item.description.replace(/"/g, '""'),
-      new Date(item.createdAt).toISOString()
+      sanitizeCsvCell(item.id),
+      sanitizeCsvCell(item.type),
+      sanitizeCsvCell(item.category),
+      sanitizeCsvCell(item.amount),
+      sanitizeCsvCell(item.date),
+      sanitizeCsvCell(item.description),
+      sanitizeCsvCell(new Date(item.createdAt).toISOString())
     ]);
     
     const csvContent = "data:text/csv;charset=utf-8," 
@@ -299,7 +308,7 @@ export const Profile: React.FC<ProfileProps> = ({
                     onClick={() => onSelectLanguage && onSelectLanguage('ID')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       lang === 'ID'
-                        ? 'liquid-pill-active'
+                        ? 'forest-pill-active'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                     }`}
                   >
@@ -310,7 +319,7 @@ export const Profile: React.FC<ProfileProps> = ({
                     onClick={() => onSelectLanguage && onSelectLanguage('EN')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       lang === 'EN'
-                        ? 'liquid-pill-active'
+                        ? 'forest-pill-active'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                     }`}
                   >
@@ -485,7 +494,7 @@ export const Profile: React.FC<ProfileProps> = ({
                 <button
                   type="submit"
                   disabled={!newCategoryName.trim()}
-                  className="px-4 py-2.5 liquid-pill-active rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer flex-shrink-0"
+                  className="px-4 py-2.5 forest-pill-active rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer flex-shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>{t.addCategoryBtn}</span>

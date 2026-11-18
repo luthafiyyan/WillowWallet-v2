@@ -1,0 +1,13 @@
+{
+  "target": "WillowWallet-v2",
+  "target_root": "c:/Users/Laboran/Documents/Github Ku/WillowWallet-v2-main/WillowWallet-v2-main",
+  "source_ref": "4b3ad36",
+  "profile": "standard",
+  "execution_policy": "sandboxed-source-and-local-only",
+  "run_status": "complete",
+  "budget": {
+    "max_agents": 12,
+    "spent_agents": 6
+  },
+  "created_at": "2026-11-16T04:51:56.836Z"
+}

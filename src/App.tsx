@@ -23,6 +23,7 @@ import { BottomSheet } from './components/BottomSheet';
 import { ConfirmationDialog } from './components/ConfirmationDialog';
 import { TransactionDetailModal } from './components/TransactionDetailModal';
 import { GoalModal } from './components/GoalModal';
+import { MonthlyReportModal } from './components/MonthlyReportModal';
 import { SplashScreen } from './components/SplashScreen';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
@@ -60,6 +61,9 @@ function AppContent() {
 
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingGoal | null>(null);
+
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportSelectedMonth, setReportSelectedMonth] = useState(() => new Date().toISOString().substring(0, 7));
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<'transaction' | 'budget' | 'goal' | null>(null);
@@ -376,6 +380,10 @@ function AppContent() {
               setEditingGoal(null);
               setIsGoalModalOpen(true);
             }}
+            onOpenMonthlyReport={() => {
+              setReportSelectedMonth(new Date().toISOString().substring(0, 7));
+              setIsReportModalOpen(true);
+            }}
             onEditTransaction={handleEditTransactionClick}
             onDeleteTransaction={handleDeleteTransactionClick}
             onDeleteGoal={handleDeleteGoalClick}
@@ -403,6 +411,11 @@ function AppContent() {
             categories={categories}
             onSaveBudget={handleSaveBudget}
             onDeleteBudget={handleDeleteBudgetClick}
+            onNavigateTab={setActiveTab}
+            onOpenMonthlyReport={(m) => {
+              if (m) setReportSelectedMonth(m);
+              setIsReportModalOpen(true);
+            }}
             lang={lang}
           />
         )}
@@ -487,6 +500,16 @@ function AppContent() {
         transaction={detailTransaction}
         onEdit={handleEditTransactionClick}
         onDelete={handleDeleteTransactionClick}
+        lang={lang}
+      />
+
+      <MonthlyReportModal 
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        selectedMonth={reportSelectedMonth}
+        transactions={transactions}
+        budgets={budgets}
+        userName={user.displayName || (lang === 'ID' ? 'Pengguna' : 'User')}
         lang={lang}
       />
 

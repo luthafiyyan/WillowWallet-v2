@@ -202,7 +202,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     onClick={() => setType('income')}
                     className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer ${
                       type === 'income'
-                        ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-600/25'
+                        ? 'bg-[#123628] text-white shadow-md shadow-[#123628]/25'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                     }`}
                   >
@@ -360,9 +360,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 <button
                   type="submit"
                   disabled={!amount || parseFloat(amount) <= 0}
-                  className="w-full liquid-pill-active py-4 rounded-2xl text-base font-bold shadow-lg shadow-emerald-600/25 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full bg-[#123628] hover:bg-[#1C4D3A] text-white py-4 rounded-2xl text-base font-bold shadow-lg shadow-[#123628]/25 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none mt-4 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Check className="w-5 h-5" />
+                  <Check className="w-5 h-5 stroke-[2.5]" />
                   <span>{editingTransaction ? (lang === 'ID' ? 'Simpan Perubahan' : 'Save Changes') : t.saveBtn}</span>
                 </button>
               </form>

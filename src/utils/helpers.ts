@@ -10,6 +10,10 @@ import {
   TrendingUp,
   Gift,
   HelpCircle,
+  Coffee,
+  Film,
+  Zap,
+  DollarSign,
   LucideIcon
 } from 'lucide-react';
 
@@ -32,47 +36,92 @@ export const getIndonesianGreeting = (): string => {
   return 'Selamat malam';
 };
 
-// Map category string to Lucide icon and color classes
+// Map category or brand string to visual representation
 export interface CategoryStyle {
   icon: LucideIcon;
   bgClass: string;
   textClass: string;
+  badgeChar?: string;
+  badgeBg?: string;
+  badgeText?: string;
 }
 
-export const getCategoryStyle = (category: string): CategoryStyle => {
-  const norm = category.toLowerCase().trim();
+export const getCategoryStyle = (category: string, description: string = ''): CategoryStyle => {
+  const normCat = (category || '').toLowerCase().trim();
+  const normDesc = (description || '').toLowerCase().trim();
+  const combined = `${normCat} ${normDesc}`;
 
-  if (norm.includes('makan') || norm.includes('minum') || norm.includes('food') || norm.includes('restoran')) {
-    return { icon: Utensils, bgClass: 'bg-orange-500/10 dark:bg-orange-500/20', textClass: 'text-orange-600 dark:text-orange-400' };
+  // 1. Specific Brand detection matching reference image
+  if (combined.includes('netflix')) {
+    return {
+      icon: Film,
+      bgClass: 'bg-black text-white dark:bg-black',
+      textClass: 'text-red-600',
+      badgeChar: 'N',
+      badgeBg: 'bg-[#E50914] text-white',
+      badgeText: 'text-white'
+    };
   }
-  if (norm.includes('trans') || norm.includes('mobil') || norm.includes('motor') || norm.includes('bensin') || norm.includes('ojek')) {
-    return { icon: Car, bgClass: 'bg-blue-500/10 dark:bg-blue-500/20', textClass: 'text-blue-600 dark:text-blue-400' };
+  if (combined.includes('starbucks') || combined.includes('kopi') || combined.includes('coffee')) {
+    return {
+      icon: Coffee,
+      bgClass: 'bg-[#00704A]/12 text-[#00704A] dark:bg-[#00704A]/25 dark:text-[#34D399]',
+      textClass: 'text-[#00704A] dark:text-[#34D399]',
+      badgeChar: '☕',
+      badgeBg: 'bg-[#00704A] text-white',
+      badgeText: 'text-white'
+    };
   }
-  if (norm.includes('belanja') || norm.includes('shopping') || norm.includes('baju') || norm.includes('mall')) {
-    return { icon: ShoppingBag, bgClass: 'bg-pink-500/10 dark:bg-pink-500/20', textClass: 'text-pink-600 dark:text-pink-400' };
+  if (combined.includes('uber') || combined.includes('grab') || combined.includes('gojek')) {
+    return {
+      icon: Car,
+      bgClass: 'bg-amber-400/15 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300',
+      textClass: 'text-amber-600 dark:text-amber-400',
+      badgeChar: '🚗',
+      badgeBg: 'bg-black text-amber-400',
+      badgeText: 'text-amber-400'
+    };
   }
-  if (norm.includes('tagihan') || norm.includes('utilitas') || norm.includes('listrik') || norm.includes('pulsa') || norm.includes('air') || norm.includes('internet')) {
-    return { icon: Receipt, bgClass: 'bg-amber-500/10 dark:bg-amber-500/20', textClass: 'text-amber-600 dark:text-amber-400' };
+  if (combined.includes('salary') || combined.includes('gaji') || combined.includes('paycheck')) {
+    return {
+      icon: Briefcase,
+      bgClass: 'bg-[#123628] text-white dark:bg-[#1C4D3A] dark:text-white',
+      textClass: 'text-emerald-600 dark:text-emerald-400',
+      badgeChar: '💼',
+      badgeBg: 'bg-[#123628] text-white',
+      badgeText: 'text-white'
+    };
   }
-  if (norm.includes('hiburan') || norm.includes('bioskop') || norm.includes('game') || norm.includes('netflix') || norm.includes('wisata')) {
-    return { icon: Tv, bgClass: 'bg-purple-500/10 dark:bg-purple-500/20', textClass: 'text-purple-600 dark:text-purple-400' };
+
+  // 2. Category matching
+  if (combined.includes('makan') || combined.includes('minum') || combined.includes('food') || combined.includes('restoran')) {
+    return { icon: Utensils, bgClass: 'bg-orange-500/12 dark:bg-orange-500/20', textClass: 'text-orange-600 dark:text-orange-400' };
   }
-  if (norm.includes('sehat') || norm.includes('obat') || norm.includes('dokter') || norm.includes('klinik') || norm.includes('gym')) {
-    return { icon: HeartPulse, bgClass: 'bg-rose-500/10 dark:bg-rose-500/20', textClass: 'text-rose-600 dark:text-rose-400' };
+  if (combined.includes('trans') || combined.includes('mobil') || combined.includes('motor') || combined.includes('bensin') || combined.includes('ojek')) {
+    return { icon: Car, bgClass: 'bg-blue-500/12 dark:bg-blue-500/20', textClass: 'text-blue-600 dark:text-blue-400' };
   }
-  if (norm.includes('didik') || norm.includes('sekolah') || norm.includes('kuliah') || norm.includes('buku') || norm.includes('kursus')) {
-    return { icon: GraduationCap, bgClass: 'bg-indigo-500/10 dark:bg-indigo-500/20', textClass: 'text-indigo-600 dark:text-indigo-400' };
+  if (combined.includes('belanja') || combined.includes('shopping') || combined.includes('baju') || combined.includes('mall')) {
+    return { icon: ShoppingBag, bgClass: 'bg-rose-500/12 dark:bg-rose-500/20', textClass: 'text-rose-600 dark:text-rose-400' };
   }
-  if (norm.includes('gaji') || norm.includes('salary') || norm.includes('paycheck')) {
-    return { icon: Briefcase, bgClass: 'bg-emerald-500/10 dark:bg-emerald-500/20', textClass: 'text-emerald-600 dark:text-emerald-400' };
+  if (combined.includes('tagihan') || combined.includes('utilitas') || combined.includes('listrik') || combined.includes('pulsa') || combined.includes('air') || combined.includes('internet')) {
+    return { icon: Receipt, bgClass: 'bg-amber-500/12 dark:bg-amber-500/20', textClass: 'text-amber-600 dark:text-amber-400' };
   }
-  if (norm.includes('invest') || norm.includes('saham') || norm.includes('crypto') || norm.includes('reksadana')) {
-    return { icon: TrendingUp, bgClass: 'bg-cyan-500/10 dark:bg-cyan-500/20', textClass: 'text-cyan-600 dark:text-cyan-400' };
+  if (combined.includes('hiburan') || combined.includes('bioskop') || combined.includes('game') || combined.includes('wisata')) {
+    return { icon: Tv, bgClass: 'bg-purple-500/12 dark:bg-purple-500/20', textClass: 'text-purple-600 dark:text-purple-400' };
   }
-  if (norm.includes('hadiah') || norm.includes('gift') || norm.includes('kado') || norm.includes('bonus')) {
-    return { icon: Gift, bgClass: 'bg-teal-500/10 dark:bg-teal-500/20', textClass: 'text-teal-600 dark:text-teal-400' };
+  if (combined.includes('sehat') || combined.includes('obat') || combined.includes('dokter') || combined.includes('klinik') || combined.includes('gym')) {
+    return { icon: HeartPulse, bgClass: 'bg-pink-500/12 dark:bg-pink-500/20', textClass: 'text-pink-600 dark:text-pink-400' };
+  }
+  if (combined.includes('didik') || combined.includes('sekolah') || combined.includes('kuliah') || combined.includes('buku') || combined.includes('kursus')) {
+    return { icon: GraduationCap, bgClass: 'bg-indigo-500/12 dark:bg-indigo-500/20', textClass: 'text-indigo-600 dark:text-indigo-400' };
+  }
+  if (combined.includes('invest') || combined.includes('saham') || combined.includes('crypto') || combined.includes('reksadana')) {
+    return { icon: TrendingUp, bgClass: 'bg-cyan-500/12 dark:bg-cyan-500/20', textClass: 'text-cyan-600 dark:text-cyan-400' };
+  }
+  if (combined.includes('hadiah') || combined.includes('gift') || combined.includes('kado') || combined.includes('bonus')) {
+    return { icon: Gift, bgClass: 'bg-teal-500/12 dark:bg-teal-500/20', textClass: 'text-teal-600 dark:text-teal-400' };
   }
   
   // Fallback default
-  return { icon: HelpCircle, bgClass: 'bg-slate-500/10 dark:bg-slate-500/20', textClass: 'text-slate-600 dark:text-slate-400' };
+  return { icon: HelpCircle, bgClass: 'bg-slate-500/12 dark:bg-slate-500/20', textClass: 'text-slate-600 dark:text-slate-400' };
 };

@@ -100,7 +100,8 @@ class SandboxDatabase {
 
   setValueAtPath(path: string, val: any) {
     const data = this.getRawData();
-    const parts = path.split('/').filter(p => p);
+    const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+    const parts = path.split('/').filter(p => Boolean(p) && !FORBIDDEN_KEYS.has(p));
     let current = data;
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
@@ -119,7 +120,8 @@ class SandboxDatabase {
 
   updateValueAtPath(path: string, updates: any) {
     const data = this.getRawData();
-    const parts = path.split('/').filter(p => p);
+    const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+    const parts = path.split('/').filter(p => Boolean(p) && !FORBIDDEN_KEYS.has(p));
     let current = data;
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];

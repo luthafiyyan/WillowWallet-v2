@@ -291,7 +291,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                 onClick={() => setTimeFilter(range)}
                 className={`px-3 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all cursor-pointer ${
                   timeFilter === range
-                    ? 'liquid-pill-active'
+                    ? 'forest-pill-active'
                     : 'bg-white dark:bg-slate-800 text-text-secondary border border-slate-200 dark:border-slate-700 hover:text-text-primary'
                 }`}
               >
@@ -451,7 +451,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
                     onClick={() => setTimeFilter(range)}
                     className={`text-left px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                       timeFilter === range
-                        ? 'liquid-pill-active'
+                        ? 'forest-pill-active'
                         : 'text-text-secondary hover:text-text-primary dark:hover:text-slate-200'
                     }`}
                   >
@@ -561,7 +561,7 @@ export const Transactions: React.FC<TransactionsProps> = ({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-xs liquid-pill-active px-5 py-2.5 rounded-xl font-semibold cursor-pointer mt-2"
+                className="text-xs forest-pill-active px-5 py-2.5 rounded-xl font-semibold cursor-pointer mt-2"
               >
                 {t.resetFiltersBtn}
               </button>
